@@ -43,7 +43,8 @@ class CCompiler:
         value = statement.value
         
         if isinstance(value, StringLiteral):
-            return f'{self.indent()}printf("{value.value}");\n'
+            escaped_string = value.value.replace('\\', '\\\\').replace('\n', '\\n').replace('\t', '\\t').replace('\r', '\\r').replace('"', '\\"')
+            return f'{self.indent()}printf("{escaped_string}");\n'
         elif isinstance(value, NumberLiteral):
             return f'{self.indent()}printf("%d", {value.value});\n'
     
