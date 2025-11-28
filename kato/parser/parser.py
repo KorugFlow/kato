@@ -10,7 +10,6 @@ class KatoSyntaxError(Exception):
         super().__init__(self.format_error())
     
     def format_error(self):
-        # ANSI цвета
         RED = '\033[91m'
         YELLOW = '\033[93m'
         CYAN = '\033[96m'
@@ -71,6 +70,19 @@ class ReturnStatement(ASTNode):
         self.value = value
 
 
+class VarDeclaration(ASTNode):
+    def __init__(self, var_type, name, value):
+        self.var_type = var_type
+        self.name = name
+        self.value = value
+
+
+class CallStatement(ASTNode):
+    def __init__(self, func_name, arguments):
+        self.func_name = func_name
+        self.arguments = arguments
+
+
 class StringLiteral(ASTNode):
     def __init__(self, value):
         self.value = value
@@ -81,11 +93,28 @@ class NumberLiteral(ASTNode):
         self.value = value
 
 
+class FloatLiteral(ASTNode):
+    def __init__(self, value):
+        self.value = value
+
+
+class CharLiteral(ASTNode):
+    def __init__(self, value):
+        self.value = value
+
+
+class Identifier(ASTNode):
+    def __init__(self, name):
+        self.name = name
+
+
 class Parser:
     def __init__(self, tokens, source_code=None):
         self.tokens = tokens
         self.pos = 0
         self.source_code = source_code
+        self.defined_functions = set()
+        self.builtin_functions = {"print"}
     
     def current_token(self):
         if self.pos >= len(self.tokens):
@@ -148,14 +177,34 @@ class Parser:
         name_token = self.expect("IDENTIFIER")
         name = name_token.value
         
+        if name in self.defined_functions or name in self.builtin_functions:
+            raise KatoSyntaxError(
+                f"Function '{name}' is already defined",
+                name_token.line, name_token.column,
+                self.source_code
+            )
+        
         self.expect("LPAREN")
         
         params = []
         while self.current_token() and self.current_token().type != "RPAREN":
             param_token = self.expect("IDENTIFIER")
             params.append(param_token.value)
+            
+            if self.current_token() and self.current_token().type == "COMMA":
+                self.advance()
         
         self.expect("RPAREN")
+        
+        if name == "main" and len(params) > 0:
+            raise KatoSyntaxError(
+                f"Function 'main' must not have any arguments",
+                name_token.line, name_token.column,
+                self.source_code
+            )
+        
+        self.defined_functions.add(name)
+        
         self.expect("LBRACE")
         
         body = []
@@ -173,6 +222,10 @@ class Parser:
             return self.parse_print_statement()
         elif token.type == "RETURN":
             return self.parse_return_statement()
+        elif token.type == "VAR":
+            return self.parse_var_declaration()
+        elif token.type == "CALL":
+            return self.parse_call_statement()
         else:
             raise KatoSyntaxError(
                 f"Unknown statement type '{token.value}'",
@@ -226,10 +279,91 @@ class Parser:
         elif token.type == "NUMBER":
             self.advance()
             return NumberLiteral(token.value)
+        elif token.type == "FLOAT_NUMBER":
+            self.advance()
+            return FloatLiteral(token.value)
+        elif token.type == "IDENTIFIER":
+            self.advance()
+            return Identifier(token.value)
         else:
             raise KatoSyntaxError(
-                f"Expected expression (string or number), got '{token.value}'",
+                f"Expected expression (string, number, or identifier), got '{token.value}'",
                 token.line, token.column,
                 self.source_code
             )
+    
+    def parse_var_declaration(self):
+        var_token = self.current_token()
+        self.expect("VAR")
+        
+        type_token = self.current_token()
+        if type_token.type not in ["INT", "FLOAT", "CHAR", "STRING_TYPE"]:
+            raise KatoSyntaxError(
+                f"Expected variable type (int, float, char, string), got '{type_token.value}'",
+                type_token.line, type_token.column,
+                self.source_code
+            )
+        var_type = type_token.value
+        self.advance()
+        
+        name_token = self.expect("IDENTIFIER")
+        name = name_token.value
+        
+        self.expect("EQUALS")
+        
+        value = self.parse_expression()
+        
+        semicolon_token = self.current_token()
+        if semicolon_token is None or semicolon_token.type != "SEMICOLON":
+            raise KatoSyntaxError(
+                "Missing semicolon ';' after variable declaration",
+                var_token.line, var_token.column,
+                self.source_code
+            )
+        self.expect("SEMICOLON")
+        
+        return VarDeclaration(var_type, name, value)
+    
+    def parse_call_statement(self):
+        call_token = self.current_token()
+        self.expect("CALL")
+        
+        func_name_token = self.expect("IDENTIFIER")
+        func_name = func_name_token.value
+        
+        if func_name not in self.defined_functions and func_name not in self.builtin_functions:
+            raise KatoSyntaxError(
+                f"Unknown function '{func_name}'",
+                func_name_token.line, func_name_token.column,
+                self.source_code
+            )
+        
+        lparen_token = self.current_token()
+        if lparen_token is None or lparen_token.type != "LPAREN":
+            raise KatoSyntaxError(
+                f"Function call without arguments (missing parentheses)",
+                func_name_token.line, func_name_token.column + len(func_name),
+                self.source_code
+            )
+        self.expect("LPAREN")
+        
+        arguments = []
+        while self.current_token() and self.current_token().type != "RPAREN":
+            arguments.append(self.parse_expression())
+            
+            if self.current_token() and self.current_token().type == "COMMA":
+                self.advance()
+        
+        self.expect("RPAREN")
+        
+        semicolon_token = self.current_token()
+        if semicolon_token is None or semicolon_token.type != "SEMICOLON":
+            raise KatoSyntaxError(
+                "Missing semicolon ';' after function call",
+                call_token.line, call_token.column,
+                self.source_code
+            )
+        self.expect("SEMICOLON")
+        
+        return CallStatement(func_name, arguments)
 

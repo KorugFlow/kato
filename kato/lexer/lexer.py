@@ -84,12 +84,20 @@ class Lexer:
         start_line = self.line
         start_column = self.column
         number_str = ""
+        is_float = False
         
-        while self.current_char() and self.current_char().isdigit():
+        while self.current_char() and (self.current_char().isdigit() or self.current_char() == '.'):
+            if self.current_char() == '.':
+                if is_float:
+                    break
+                is_float = True
             number_str += self.current_char()
             self.advance()
         
-        return Token("NUMBER", int(number_str), start_line, start_column)
+        if is_float:
+            return Token("FLOAT_NUMBER", float(number_str), start_line, start_column)
+        else:
+            return Token("NUMBER", int(number_str), start_line, start_column)
     
     def read_identifier(self):
         start_line = self.line
@@ -137,6 +145,15 @@ class Lexer:
                 self.advance()
             elif char == ';':
                 self.tokens.append(Token("SEMICOLON", char, start_line, start_column))
+                self.advance()
+            elif char == '=':
+                self.tokens.append(Token("EQUALS", char, start_line, start_column))
+                self.advance()
+            elif char == ',':
+                self.tokens.append(Token("COMMA", char, start_line, start_column))
+                self.advance()
+            elif char == '*':
+                self.tokens.append(Token("ASTERISK", char, start_line, start_column))
                 self.advance()
             else:
                 raise SyntaxError(f"Dude, what even is '{char}' at {start_line}:{start_column}? I have no idea what you want from me here.")

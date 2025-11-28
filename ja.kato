@@ -1,5 +1,17 @@
+func welcome(text) {
+    print("*text*");
+}
+
+
 func main() {
+
     print("Hello, World");
     print("he");
+
+    var int x = 20;
+    var string name = "bohdan";
+    print("hello! my age is: *x*, and my name is *name* ");
+    call welcome("hello!");
     return 2;
 }
+
