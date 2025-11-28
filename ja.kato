@@ -1,8 +1,24 @@
 func main() {
-    mass int arr = {10, 20, 30};
-    var int i = 0;
-    while (i < 3) {
-        print(*arr[i]* "\n");
-        i++;
+    var int a = inpt("enter first number: ");
+    var int b = inpt("enter second number: ");
+    var char c = inpt("enter operation: ");
+    if c == '+' {
+        print(*a* + *b* "\n");
     }
+    elif c == '-' {
+        print(*a* - *b* "\n");
+    }
+    elif c == '*' {
+        print(*a* * *b* "\n");
+    }
+    elif c == '/' {
+        if b == 0 {
+            print("я не дурак\n");
+            return 666;
+        }
+        else {
+            print(*a* / *b* "\n");
+        }
+    }
+    return 0;
 }

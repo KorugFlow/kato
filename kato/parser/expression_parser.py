@@ -72,6 +72,12 @@ class ExpressionParser:
                 return ArrayAccess(name, index)
             
             return Identifier(name)
+        elif token.type in ["INT", "FLOAT", "CHAR", "STRING_TYPE"]:
+            raise KatoSyntaxError(
+                f"Cannot use type '{token.value}' as a variable. Did you mean to use a variable name?",
+                token.line, token.column,
+                self.parser.source_code
+            )
         elif token.type == "ASTERISK":
             self.parser.advance()
             var_token = self.parser.expect("IDENTIFIER")
@@ -105,6 +111,15 @@ class ExpressionParser:
             )
     
     def parse_comparison(self):
+        left_token = self.parser.current_token()
+        
+        if left_token and left_token.type in ["INT", "FLOAT", "CHAR", "STRING_TYPE"]:
+            raise KatoSyntaxError(
+                f"Cannot use type '{left_token.value}' as a variable. Did you mean to use a variable name?",
+                left_token.line, left_token.column,
+                self.parser.source_code
+            )
+        
         left = self.parse_expression()
         
         token = self.parser.current_token()
