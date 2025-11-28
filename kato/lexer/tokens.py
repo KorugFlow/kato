@@ -9,4 +9,8 @@ class tokens:
         "char": "CHAR",
         "string": "STRING_TYPE",
         "call": "CALL",
+        "inpt": "INPT",
+        "if": "IF",
+        "elif": "ELIF",
+        "else": "ELSE",
     }

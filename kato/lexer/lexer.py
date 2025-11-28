@@ -45,6 +45,13 @@ class Lexer:
         while self.current_char() and self.current_char() in ' \t\r\n':
             self.advance()
     
+    def skip_comment(self):
+        if self.current_char() == '/' and self.peek_char() == '/':
+            while self.current_char() and self.current_char() != '\n':
+                self.advance()
+            if self.current_char() == '\n':
+                self.advance()
+    
     def read_string(self):
         start_line = self.line
         start_column = self.column
@@ -78,7 +85,10 @@ class Lexer:
         else:
             raise SyntaxError(f"Come on, seriously?")
         
-        return Token("STRING", string_value, start_line, start_column)
+        if quote_char == "'":
+            return Token("CHAR", string_value, start_line, start_column)
+        else:
+            return Token("STRING", string_value, start_line, start_column)
     
     def read_number(self):
         start_line = self.line
@@ -121,6 +131,10 @@ class Lexer:
             if not self.current_char():
                 break
             
+            if self.current_char() == '/' and self.peek_char() == '/':
+                self.skip_comment()
+                continue
+            
             char = self.current_char()
             start_line = self.line
             start_column = self.column
@@ -147,8 +161,13 @@ class Lexer:
                 self.tokens.append(Token("SEMICOLON", char, start_line, start_column))
                 self.advance()
             elif char == '=':
-                self.tokens.append(Token("EQUALS", char, start_line, start_column))
-                self.advance()
+                if self.peek_char() == '=':
+                    self.tokens.append(Token("EQUAL_EQUAL", "==", start_line, start_column))
+                    self.advance()
+                    self.advance()
+                else:
+                    self.tokens.append(Token("EQUALS", char, start_line, start_column))
+                    self.advance()
             elif char == ',':
                 self.tokens.append(Token("COMMA", char, start_line, start_column))
                 self.advance()
@@ -172,6 +191,29 @@ class Lexer:
             elif char == '%':
                 self.tokens.append(Token("PERCENT", char, start_line, start_column))
                 self.advance()
+            elif char == '<':
+                if self.peek_char() == '=':
+                    self.tokens.append(Token("LESS_EQUAL", "<=", start_line, start_column))
+                    self.advance()
+                    self.advance()
+                else:
+                    self.tokens.append(Token("LESS", char, start_line, start_column))
+                    self.advance()
+            elif char == '>':
+                if self.peek_char() == '=':
+                    self.tokens.append(Token("GREATER_EQUAL", ">=", start_line, start_column))
+                    self.advance()
+                    self.advance()
+                else:
+                    self.tokens.append(Token("GREATER", char, start_line, start_column))
+                    self.advance()
+            elif char == '!':
+                if self.peek_char() == '=':
+                    self.tokens.append(Token("NOT_EQUAL", "!=", start_line, start_column))
+                    self.advance()
+                    self.advance()
+                else:
+                    raise SyntaxError(f"Dude, what even is '{char}' at {start_line}:{start_column}? I have no idea what you want from me here.")
             else:
                 raise SyntaxError(f"Dude, what even is '{char}' at {start_line}:{start_column}? I have no idea what you want from me here.")
         

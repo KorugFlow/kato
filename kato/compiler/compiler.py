@@ -1,7 +1,7 @@
 from parser.parser import (
     Program, Function, PrintStatement, ReturnStatement,
-    VarDeclaration, CallStatement,
-    StringLiteral, NumberLiteral, FloatLiteral, CharLiteral, Identifier, BinaryOp
+    VarDeclaration, CallStatement, IfStatement, Assignment,
+    StringLiteral, NumberLiteral, FloatLiteral, CharLiteral, Identifier, BinaryOp, InptCall
 )
 import re
 
@@ -17,7 +17,8 @@ class CCompiler:
     
     def compile(self):
         c_code = "#include <stdio.h>\n"
-        c_code += "#include <string.h>\n\n"
+        c_code += "#include <string.h>\n"
+        c_code += "#include <stdlib.h>\n\n"
         
         for function in self.ast.functions:
             if function.name != "main":
@@ -67,6 +68,10 @@ class CCompiler:
             return self.compile_var_declaration(statement)
         elif isinstance(statement, CallStatement):
             return self.compile_call(statement)
+        elif isinstance(statement, IfStatement):
+            return self.compile_if(statement)
+        elif isinstance(statement, Assignment):
+            return self.compile_assignment(statement)
     
     def compile_print(self, statement):
         values = statement.value if isinstance(statement.value, list) else [statement.value]
@@ -164,9 +169,25 @@ class CCompiler:
         }
         c_type = c_type_map.get(var_type, "int")
         
-        c_value = self.compile_expr(var_value)
-        
-        return f'{self.indent()}{c_type} {var_name} = {c_value};\n'
+        if isinstance(var_value, InptCall):
+            prompt = self.compile_expr(var_value.prompt)
+            code = f'{self.indent()}{c_type} {var_name};\n'
+            code += f'{self.indent()}printf({prompt});\n'
+            
+            if var_type == "int":
+                code += f'{self.indent()}scanf("%d", &{var_name});\n'
+            elif var_type == "float":
+                code += f'{self.indent()}scanf("%f", &{var_name});\n'
+            elif var_type == "char":
+                code += f'{self.indent()}scanf(" %c", &{var_name});\n'
+            elif var_type == "string":
+                code += f'{self.indent()}{var_name} = (char*)malloc(256);\n'
+                code += f'{self.indent()}scanf("%255s", {var_name});\n'
+            
+            return code
+        else:
+            c_value = self.compile_expr(var_value, var_type)
+            return f'{self.indent()}{c_type} {var_name} = {c_value};\n'
     
     def compile_call(self, statement):
         func_name = statement.func_name
@@ -181,10 +202,15 @@ class CCompiler:
         
         return f'{self.indent()}{func_name}();\n'
     
-    def compile_expr(self, expr):
+    def compile_expr(self, expr, var_type=None):
         if isinstance(expr, StringLiteral):
             escaped_string = expr.value.replace('\\', '\\\\').replace('\n', '\\n').replace('\t', '\\t').replace('\r', '\\r').replace('"', '\\"')
             return f'"{escaped_string}"'
+        elif isinstance(expr, CharLiteral):
+            if len(expr.value) == 1:
+                return f"'{expr.value}'"
+            else:
+                return f"'{expr.value[0]}'"
         elif isinstance(expr, NumberLiteral):
             return str(expr.value)
         elif isinstance(expr, FloatLiteral):
@@ -192,8 +218,75 @@ class CCompiler:
         elif isinstance(expr, Identifier):
             return expr.name
         elif isinstance(expr, BinaryOp):
-            left = self.compile_expr(expr.left)
-            right = self.compile_expr(expr.right)
+            left = self.compile_expr(expr.left, var_type)
+            right = self.compile_expr(expr.right, var_type)
             return f"({left} {expr.operator} {right})"
+        elif isinstance(expr, InptCall):
+            prompt = self.compile_expr(expr.prompt, var_type)
+            
+            if var_type == "int":
+                return f"(printf({prompt}), scanf(\"%d\", &(int){{0}}), (int){{0}})"
+            elif var_type == "float":
+                return f"(printf({prompt}), scanf(\"%f\", &(float){{0.0}}), (float){{0.0}})"
+            elif var_type == "char":
+                return f"(printf({prompt}), getchar())"
+            elif var_type == "string":
+                return f"(printf({prompt}), (char[256]){{0}})"
+            else:
+                return f"(printf({prompt}), 0)"
         else:
             return "0"
+
+    def compile_if(self, statement):
+        condition = self.compile_expr(statement.condition)
+        
+        code = f'{self.indent()}if ({condition}) {{\n'
+        self.indent_level += 1
+        for stmt in statement.if_body:
+            code += self.compile_statement(stmt)
+        self.indent_level -= 1
+        code += f'{self.indent()}}}'
+        
+        for elif_condition, elif_body in statement.elif_parts:
+            elif_cond = self.compile_expr(elif_condition)
+            code += f' else if ({elif_cond}) {{\n'
+            self.indent_level += 1
+            for stmt in elif_body:
+                code += self.compile_statement(stmt)
+            self.indent_level -= 1
+            code += f'{self.indent()}}}'
+        
+        if statement.else_body:
+            code += f' else {{\n'
+            self.indent_level += 1
+            for stmt in statement.else_body:
+                code += self.compile_statement(stmt)
+            self.indent_level -= 1
+            code += f'{self.indent()}}}'
+        
+        code += '\n'
+        return code
+    
+    def compile_assignment(self, statement):
+        var_name = statement.name
+        var_value = statement.value
+        
+        var_type = self.variables.get(var_name, "int")
+        
+        if isinstance(var_value, InptCall):
+            prompt = self.compile_expr(var_value.prompt)
+            code = f'{self.indent()}printf({prompt});\n'
+            
+            if var_type == "int":
+                code += f'{self.indent()}scanf("%d", &{var_name});\n'
+            elif var_type == "float":
+                code += f'{self.indent()}scanf("%f", &{var_name});\n'
+            elif var_type == "char":
+                code += f'{self.indent()}scanf(" %c", &{var_name});\n'
+            elif var_type == "string":
+                code += f'{self.indent()}scanf("%255s", {var_name});\n'
+            
+            return code
+        else:
+            c_value = self.compile_expr(var_value, var_type)
+            return f'{self.indent()}{var_name} = {c_value};\n'

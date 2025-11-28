@@ -5,20 +5,26 @@ Kato - простой яп написанный на пайтон который
 Kato поддерживает 4 типа переменных:
 - `int` - целое число
 - `float` - число с плавающей точкой
-- `char` - один символ (как в C)
-- `string` - строка (как char* в C)
+- `char` - один символ (как в C). **ВАЖНО:** char литералы должны быть в одинарных кавычках `'a'`
+- `string` - строка (как char* в C). Строки должны быть в двойных кавычках `"text"`
 
 Объявление переменных:
 ```
 var type name = значение;
 ```
 
+Изменение переменных:
+```
+x = 30;
+```
+
 Пример:
 ```
 var int x = 20;
 var float pi = 3.14;
-var char letter = 'A';
-var string text = "Hello";
+var char letter = 'A';      // одинарные кавычки для char!
+var string text = "Hello";  // двойные кавычки для string!
+x = 50;
 ```
 
 ## Функция print
@@ -40,6 +46,62 @@ print может выводить:
 - Переменные в строке через идентификаторы: `print("Value: *x*");`
 - Арифметические выражения: `print(*x* + *y*);` или `print(x + y);`
 - Несколько значений: `print("hello" 20 "how are you\n");`
+
+## Функция inpt
+
+Функция inpt используется для ввода данных. Тип возвращаемого значения определяется автоматически по типу переменной:
+
+```
+var int a = inpt("enter number");
+var float b = inpt("enter float");
+var char c = inpt("enter char");
+var string s = inpt("enter text");
+```
+
+**ВАЖНО:** inpt можно использовать только при объявлении или изменении переменных!
+
+## Условия
+
+Kato поддерживает условные операторы:
+
+```
+if условие {
+    // код
+}
+elif условие {
+    // код
+}
+else {
+    // код
+}
+```
+
+Операторы сравнения:
+- `==` - равно
+- `!=` - не равно
+- `<` - меньше
+- `>` - больше
+- `<=` - меньше или равно
+- `>=` - больше или равно
+
+Пример:
+```
+var int x = 10;
+if x > 5 {
+    print("x больше 5\n");
+}
+elif x == 5 {
+    print("x равно 5\n");
+}
+else {
+    print("x меньше 5\n");
+}
+
+var char op = '+';
+if op == '+' {  // char сравнение в одинарных кавычках!
+    print("plus\n");
+}
+```
 
 ## Арифметика
 
@@ -89,6 +151,14 @@ func main() {
 }
 ```
 
+## Комментарии
+
+Однострочные комментарии:
+```
+// это комментарий
+var int x = 20; // комментарий после кода
+```
+
 ## Правила и ограничения
 
 - После каждой команды обязательно писать `;`
@@ -97,6 +167,7 @@ func main() {
 - Функции должны быть объявлены до их вызова (компилятор читает сверху вниз)
 - Вызов функции обязательно должен иметь скобки `()`, даже если аргументов нет
 - Весь код должен быть внутри функций
+- inpt можно использовать только при объявлении или изменении переменных
 
 ## Ошибки
 
@@ -125,20 +196,26 @@ Kato is a simple programming language written in Python that compiles into C. Wh
 Kato supports 4 variable types:
 - `int` - integer number
 - `float` - floating point number
-- `char` - single character (like in C)
-- `string` - string (like char* in C)
+- `char` - single character (like in C). **IMPORTANT:** char literals must be in single quotes `'a'`
+- `string` - string (like char* in C). Strings must be in double quotes `"text"`
 
 Variable declaration:
 ```
 var type name = value;
 ```
 
+Variable assignment:
+```
+x = 30;
+```
+
 Example:
 ```
 var int x = 20;
 var float pi = 3.14;
-var char letter = 'A';
-var string text = "Hello";
+var char letter = 'A';      // single quotes for char!
+var string text = "Hello";  // double quotes for string!
+x = 50;
 ```
 
 ## print Function
@@ -160,6 +237,62 @@ print can output:
 - Variables in strings through identifiers: `print("Value: *x*");`
 - Arithmetic expressions: `print(*x* + *y*);` or `print(x + y);`
 - Multiple values: `print("hello" 20 "how are you\n");`
+
+## inpt Function
+
+The inpt function is used for input. The return type is automatically determined by the variable type:
+
+```
+var int a = inpt("enter number");
+var float b = inpt("enter float");
+var char c = inpt("enter char");
+var string s = inpt("enter text");
+```
+
+**IMPORTANT:** inpt can only be used when declaring or assigning variables!
+
+## Conditionals
+
+Kato supports conditional statements:
+
+```
+if condition {
+    // code
+}
+elif condition {
+    // code
+}
+else {
+    // code
+}
+```
+
+Comparison operators:
+- `==` - equal
+- `!=` - not equal
+- `<` - less than
+- `>` - greater than
+- `<=` - less than or equal
+- `>=` - greater than or equal
+
+Example:
+```
+var int x = 10;
+if x > 5 {
+    print("x is greater than 5\n");
+}
+elif x == 5 {
+    print("x equals 5\n");
+}
+else {
+    print("x is less than 5\n");
+}
+
+var char op = '+';
+if op == '+' {  // char comparison in single quotes!
+    print("plus\n");
+}
+```
 
 ## Arithmetic
 
@@ -209,6 +342,14 @@ func main() {
 }
 ```
 
+## Comments
+
+Single-line comments:
+```
+// this is a comment
+var int x = 20; // comment after code
+```
+
 ## Rules and Restrictions
 
 - A semicolon `;` must be written after each statement
@@ -217,6 +358,7 @@ func main() {
 - Functions must be declared before they are called (compiler reads top to bottom)
 - Function calls must have parentheses `()`, even if there are no arguments
 - All code must be inside functions
+- inpt can only be used when declaring or assigning variables
 
 ## Errors
 

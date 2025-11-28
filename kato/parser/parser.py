@@ -115,6 +115,25 @@ class BinaryOp(ASTNode):
         self.right = right
 
 
+class IfStatement(ASTNode):
+    def __init__(self, condition, if_body, elif_parts, else_body):
+        self.condition = condition
+        self.if_body = if_body
+        self.elif_parts = elif_parts
+        self.else_body = else_body
+
+
+class Assignment(ASTNode):
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+
+class InptCall(ASTNode):
+    def __init__(self, prompt):
+        self.prompt = prompt
+
+
 class Parser:
     def __init__(self, tokens, source_code=None):
         self.tokens = tokens
@@ -233,6 +252,10 @@ class Parser:
             return self.parse_var_declaration()
         elif token.type == "CALL":
             return self.parse_call_statement()
+        elif token.type == "IF":
+            return self.parse_if_statement()
+        elif token.type == "IDENTIFIER":
+            return self.parse_assignment()
         else:
             raise KatoSyntaxError(
                 f"Unknown statement type '{token.value}'",
@@ -328,6 +351,9 @@ class Parser:
         if token.type == "STRING":
             self.advance()
             return StringLiteral(token.value)
+        elif token.type == "CHAR":
+            self.advance()
+            return CharLiteral(token.value)
         elif token.type == "NUMBER":
             self.advance()
             return NumberLiteral(token.value)
@@ -347,6 +373,12 @@ class Parser:
             expr = self.parse_expression()
             self.expect("RPAREN")
             return expr
+        elif token.type == "INPT":
+            self.advance()
+            self.expect("LPAREN")
+            prompt = self.parse_expression()
+            self.expect("RPAREN")
+            return InptCall(prompt)
         else:
             raise KatoSyntaxError(
                 f"Expected expression (string, number, or identifier), got '{token.value}'",
@@ -429,3 +461,82 @@ class Parser:
         
         return CallStatement(func_name, arguments)
 
+
+    def parse_if_statement(self):
+        self.expect("IF")
+        
+        condition = self.parse_comparison()
+        
+        self.expect("LBRACE")
+        if_body = []
+        while self.current_token() and self.current_token().type != "RBRACE":
+            if_body.append(self.parse_statement())
+        self.expect("RBRACE")
+        
+        elif_parts = []
+        while self.current_token() and self.current_token().type == "ELIF":
+            self.advance()
+            elif_condition = self.parse_comparison()
+            self.expect("LBRACE")
+            elif_body = []
+            while self.current_token() and self.current_token().type != "RBRACE":
+                elif_body.append(self.parse_statement())
+            self.expect("RBRACE")
+            elif_parts.append((elif_condition, elif_body))
+        
+        else_body = None
+        if self.current_token() and self.current_token().type == "ELSE":
+            self.advance()
+            self.expect("LBRACE")
+            else_body = []
+            while self.current_token() and self.current_token().type != "RBRACE":
+                else_body.append(self.parse_statement())
+            self.expect("RBRACE")
+        
+        return IfStatement(condition, if_body, elif_parts, else_body)
+    
+    def parse_comparison(self):
+        left = self.parse_expression()
+        
+        token = self.current_token()
+        if token and token.type in ["EQUAL_EQUAL", "NOT_EQUAL", "LESS", "GREATER", "LESS_EQUAL", "GREATER_EQUAL"]:
+            operator = token.value
+            self.advance()
+            right = self.parse_expression()
+            
+            if isinstance(left, Identifier) and isinstance(right, StringLiteral):
+                raise KatoSyntaxError(
+                    f"Cannot compare char with string. Use single quotes for char: '{right.value}' instead of \"{right.value}\"",
+                    token.line, token.column,
+                    self.source_code
+                )
+            elif isinstance(left, StringLiteral) and isinstance(right, Identifier):
+                raise KatoSyntaxError(
+                    f"Cannot compare string with char. Use single quotes for char: '{left.value}' instead of \"{left.value}\"",
+                    token.line, token.column,
+                    self.source_code
+                )
+            
+            return BinaryOp(left, operator, right)
+        
+        return left
+    
+    def parse_assignment(self):
+        name_token = self.current_token()
+        name = name_token.value
+        self.advance()
+        
+        self.expect("EQUALS")
+        
+        value = self.parse_expression()
+        
+        semicolon_token = self.current_token()
+        if semicolon_token is None or semicolon_token.type != "SEMICOLON":
+            raise KatoSyntaxError(
+                "Missing semicolon ';' after assignment",
+                name_token.line, name_token.column,
+                self.source_code
+            )
+        self.expect("SEMICOLON")
+        
+        return Assignment(name, value)

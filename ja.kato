@@ -1,17 +1,25 @@
-func welcome(text) {
-    print("*text*");
-}
-
-
 func main() {
-
-    print("Hello, World");
-    print("he");
-
-    var int x = 20;
-    var string name = "bohdan";
-    print("hello! my age is: *x*, and my name is *name* ");
-    call welcome("hello!");
-    return 2;
+    print("calculator"\n);
+    var int a = inpt("enter first number"); //можна float
+    var int b = inpt("enter second number"); //можна float
+    var char op = inpt("enter operation");
+    if op == '+' {
+        print(*a* + *b*);
+    }
+    elif op == '-' {
+        print(*a* - *b*);
+    }
+    elif op == '*' {
+        print(*a* * *b*);
+    }
+    elif op == '/' {
+        if b == 0 {
+            print("я не дебил");
+            return 666;
+        }
+        else {
+        print(*a* / *b*);
+        }
+    }
 }
 
