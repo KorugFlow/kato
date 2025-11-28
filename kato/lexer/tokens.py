@@ -4,6 +4,7 @@ class tokens:
         "print": "PRINT",
         "return": "RETURN",
         "var": "VAR",
+        "mass": "MASS",
         "int": "INT",
         "float": "FLOAT",
         "char": "CHAR",

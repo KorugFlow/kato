@@ -26,6 +26,12 @@ class Identifier(ASTNode):
         self.name = name
 
 
+class ArrayAccess(ASTNode):
+    def __init__(self, name, index):
+        self.name = name
+        self.index = index
+
+
 class BinaryOp(ASTNode):
     def __init__(self, left, operator, right):
         self.left = left

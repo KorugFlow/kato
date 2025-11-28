@@ -157,6 +157,12 @@ class Lexer:
             elif char == ')':
                 self.tokens.append(Token("RPAREN", char, start_line, start_column))
                 self.advance()
+            elif char == '[':
+                self.tokens.append(Token("LBRACKET", char, start_line, start_column))
+                self.advance()
+            elif char == ']':
+                self.tokens.append(Token("RBRACKET", char, start_line, start_column))
+                self.advance()
             elif char == ';':
                 self.tokens.append(Token("SEMICOLON", char, start_line, start_column))
                 self.advance()

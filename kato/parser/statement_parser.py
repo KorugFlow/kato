@@ -1,7 +1,8 @@
 from .ast.statements import (
     PrintStatement, ReturnStatement, VarDeclaration,
     CallStatement, IfStatement, Assignment,
-    WhileStatement, IncrementStatement, DecrementStatement
+    WhileStatement, IncrementStatement, DecrementStatement,
+    ArrayDeclaration, ArrayAssignment
 )
 from .errors import KatoSyntaxError
 
@@ -20,6 +21,8 @@ class StatementParser:
             return self.parse_return_statement()
         elif token.type == "VAR":
             return self.parse_var_declaration()
+        elif token.type == "MASS":
+            return self.parse_array_declaration()
         elif token.type == "CALL":
             return self.parse_call_statement()
         elif token.type == "IF":
@@ -32,6 +35,8 @@ class StatementParser:
                 return self.parse_increment()
             elif next_token and next_token.type == "MINUS_MINUS":
                 return self.parse_decrement()
+            elif next_token and next_token.type == "LBRACKET":
+                return self.parse_array_assignment()
             else:
                 return self.parse_assignment()
         else:
@@ -297,3 +302,84 @@ class StatementParser:
         self.parser.expect("SEMICOLON")
         
         return DecrementStatement(name)
+
+    def parse_array_declaration(self):
+        mass_token = self.parser.current_token()
+        self.parser.expect("MASS")
+        
+        type_token = self.parser.current_token()
+        if type_token.type not in ["INT", "FLOAT", "CHAR", "STRING_TYPE"]:
+            raise KatoSyntaxError(
+                f"Expected array type (int, float, char, string), got '{type_token.value}'",
+                type_token.line, type_token.column,
+                self.parser.source_code
+            )
+        array_type = type_token.value
+        self.parser.advance()
+        
+        name_token = self.parser.expect("IDENTIFIER")
+        name = name_token.value
+        
+        if name in self.parser.defined_variables:
+            raise KatoSyntaxError(
+                f"Array '{name}' is already defined",
+                name_token.line, name_token.column,
+                self.parser.source_code
+            )
+        
+        self.parser.defined_variables.add(name)
+        
+        self.parser.expect("EQUALS")
+        self.parser.expect("LBRACE")
+        
+        elements = []
+        while self.parser.current_token() and self.parser.current_token().type != "RBRACE":
+            elements.append(self.expr_parser.parse_expression())
+            
+            if self.parser.current_token() and self.parser.current_token().type == "COMMA":
+                self.parser.advance()
+        
+        self.parser.expect("RBRACE")
+        
+        semicolon_token = self.parser.current_token()
+        if semicolon_token is None or semicolon_token.type != "SEMICOLON":
+            raise KatoSyntaxError(
+                "Missing semicolon ';' after array declaration",
+                mass_token.line, mass_token.column,
+                self.parser.source_code
+            )
+        self.parser.expect("SEMICOLON")
+        
+        return ArrayDeclaration(array_type, name, elements)
+    
+    def parse_array_assignment(self):
+        name_token = self.parser.current_token()
+        name = name_token.value
+        
+        if name not in self.parser.defined_variables:
+            raise KatoSyntaxError(
+                f"Array '{name}' is not defined",
+                name_token.line, name_token.column,
+                self.parser.source_code
+            )
+        
+        self.parser.advance()
+        self.parser.expect("LBRACKET")
+        
+        index = self.expr_parser.parse_expression()
+        
+        self.parser.expect("RBRACKET")
+        self.parser.expect("EQUALS")
+        
+        value = self.expr_parser.parse_expression()
+        
+        semicolon_token = self.parser.current_token()
+        if semicolon_token is None or semicolon_token.type != "SEMICOLON":
+            raise KatoSyntaxError(
+                "Missing semicolon ';' after array assignment",
+                name_token.line, name_token.column,
+                self.parser.source_code
+            )
+        self.parser.expect("SEMICOLON")
+        
+        return ArrayAssignment(name, index, value)

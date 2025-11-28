@@ -3,6 +3,7 @@ func main() {
     while (a > 8) {
         a--;
         print(*a*"\n");
+        mass int x = {что то там бла бла бла }
     }
 }
 

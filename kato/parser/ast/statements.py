@@ -64,3 +64,17 @@ class IncrementStatement(ASTNode):
 class DecrementStatement(ASTNode):
     def __init__(self, name):
         self.name = name
+
+
+class ArrayDeclaration(ASTNode):
+    def __init__(self, array_type, name, elements):
+        self.array_type = array_type
+        self.name = name
+        self.elements = elements
+
+
+class ArrayAssignment(ASTNode):
+    def __init__(self, name, index, value):
+        self.name = name
+        self.index = index
+        self.value = value

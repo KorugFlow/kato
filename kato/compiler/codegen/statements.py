@@ -2,7 +2,8 @@ from parser.ast import (
     PrintStatement, ReturnStatement, VarDeclaration,
     CallStatement, IfStatement, Assignment,
     WhileStatement, IncrementStatement, DecrementStatement,
-    StringLiteral, NumberLiteral, FloatLiteral, Identifier, BinaryOp, InptCall
+    ArrayDeclaration, ArrayAssignment,
+    StringLiteral, NumberLiteral, FloatLiteral, Identifier, BinaryOp, InptCall, ArrayAccess
 )
 import re
 
@@ -31,6 +32,10 @@ class StatementCodegen:
             return self.compile_increment(statement)
         elif isinstance(statement, DecrementStatement):
             return self.compile_decrement(statement)
+        elif isinstance(statement, ArrayDeclaration):
+            return self.compile_array_declaration(statement)
+        elif isinstance(statement, ArrayAssignment):
+            return self.compile_array_assignment(statement)
     
     def compile_print(self, statement):
         values = statement.value if isinstance(statement.value, list) else [statement.value]
@@ -88,6 +93,22 @@ class StatementCodegen:
                 else:
                     format_parts.append("%s")
                     printf_args.append(var_name)
+            elif isinstance(value, ArrayAccess):
+                array_name = value.name
+                if array_name in self.compiler.variables:
+                    var_type = self.compiler.variables[array_name]
+                    if var_type == "int":
+                        format_parts.append("%d")
+                    elif var_type == "float":
+                        format_parts.append("%f")
+                    elif var_type == "char":
+                        format_parts.append("%c")
+                    elif var_type == "string":
+                        format_parts.append("%s")
+                    printf_args.append(self.expr_codegen.compile_expr(value))
+                else:
+                    format_parts.append("%s")
+                    printf_args.append(self.expr_codegen.compile_expr(value))
             elif isinstance(value, BinaryOp):
                 format_parts.append("%d")
                 printf_args.append(self.expr_codegen.compile_expr(value))
@@ -234,3 +255,34 @@ class StatementCodegen:
     
     def compile_decrement(self, statement):
         return f'{self.compiler.indent()}{statement.name}--;\n'
+
+    def compile_array_declaration(self, statement):
+        array_type = statement.array_type
+        array_name = statement.name
+        elements = statement.elements
+        
+        self.compiler.variables[array_name] = array_type
+        
+        c_type_map = {
+            "int": "int",
+            "float": "float",
+            "char": "char",
+            "string": "char*"
+        }
+        c_type = c_type_map.get(array_type, "int")
+        
+        array_size = len(elements)
+        compiled_elements = []
+        for elem in elements:
+            compiled_elements.append(self.expr_codegen.compile_expr(elem, array_type))
+        
+        elements_str = ", ".join(compiled_elements)
+        
+        return f'{self.compiler.indent()}{c_type} {array_name}[{array_size}] = {{{elements_str}}};\n'
+    
+    def compile_array_assignment(self, statement):
+        array_name = statement.name
+        index = self.expr_codegen.compile_expr(statement.index)
+        value = self.expr_codegen.compile_expr(statement.value)
+        
+        return f'{self.compiler.indent()}{array_name}[{index}] = {value};\n'

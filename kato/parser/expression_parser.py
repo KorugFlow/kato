@@ -1,6 +1,6 @@
 from .ast.expressions import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
-    Identifier, BinaryOp, InptCall
+    Identifier, BinaryOp, InptCall, ArrayAccess
 )
 from .errors import KatoSyntaxError
 
@@ -62,11 +62,28 @@ class ExpressionParser:
             self.parser.advance()
             return FloatLiteral(token.value)
         elif token.type == "IDENTIFIER":
+            name = token.value
             self.parser.advance()
-            return Identifier(token.value)
+            
+            if self.parser.current_token() and self.parser.current_token().type == "LBRACKET":
+                self.parser.advance()
+                index = self.parse_expression()
+                self.parser.expect("RBRACKET")
+                return ArrayAccess(name, index)
+            
+            return Identifier(name)
         elif token.type == "ASTERISK":
             self.parser.advance()
             var_token = self.parser.expect("IDENTIFIER")
+            
+            if self.parser.current_token() and self.parser.current_token().type == "LBRACKET":
+                name = var_token.value
+                self.parser.advance()
+                index = self.parse_expression()
+                self.parser.expect("RBRACKET")
+                self.parser.expect("ASTERISK")
+                return ArrayAccess(name, index)
+            
             self.parser.expect("ASTERISK")
             return Identifier(var_token.value)
         elif token.type == "LPAREN":

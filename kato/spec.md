@@ -27,6 +27,37 @@ var string text = "Hello";  // двойные кавычки для string!
 x = 50;
 ```
 
+## Массивы
+
+Объявление массивов:
+```
+mass type name = {элемент1, элемент2, элемент3};
+```
+
+Типы массивов: `int`, `float`, `char`, `string`
+
+Доступ к элементам:
+```
+mass int numbers = {1, 2, 3, 4, 5};
+print(*numbers[0]*);  // выведет 1
+print("Value: *numbers[2]*\n");  // выведет "Value: 3"
+```
+
+Изменение элементов:
+```
+numbers[0] = 10;
+```
+
+Пример:
+```
+mass int arr = {10, 20, 30};
+var int i = 0;
+while (i < 3) {
+    print(*arr[i]* "\n");
+    i++;
+}
+```
+
 ## Функция print
 
 Функция print в Kato работает не как в C (без %). Для вывода переменных используются идентификаторы `*var*`:
@@ -241,6 +272,37 @@ var float pi = 3.14;
 var char letter = 'A';      // single quotes for char!
 var string text = "Hello";  // double quotes for string!
 x = 50;
+```
+
+## Arrays
+
+Array declaration:
+```
+mass type name = {element1, element2, element3};
+```
+
+Array types: `int`, `float`, `char`, `string`
+
+Accessing elements:
+```
+mass int numbers = {1, 2, 3, 4, 5};
+print(*numbers[0]*);  // prints 1
+print("Value: *numbers[2]*\n");  // prints "Value: 3"
+```
+
+Modifying elements:
+```
+numbers[0] = 10;
+```
+
+Example:
+```
+mass int arr = {10, 20, 30};
+var int i = 0;
+while (i < 3) {
+    print(*arr[i]* "\n");
+    i++;
+}
 ```
 
 ## print Function

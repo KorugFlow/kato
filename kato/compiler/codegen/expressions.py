@@ -1,6 +1,6 @@
 from parser.ast import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
-    Identifier, BinaryOp, InptCall
+    Identifier, BinaryOp, InptCall, ArrayAccess
 )
 
 
@@ -23,6 +23,9 @@ class ExpressionCodegen:
             return str(expr.value)
         elif isinstance(expr, Identifier):
             return expr.name
+        elif isinstance(expr, ArrayAccess):
+            index = self.compile_expr(expr.index, var_type)
+            return f"{expr.name}[{index}]"
         elif isinstance(expr, BinaryOp):
             left = self.compile_expr(expr.left, var_type)
             right = self.compile_expr(expr.right, var_type)
