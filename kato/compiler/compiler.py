@@ -181,8 +181,9 @@ class CCompiler:
             elif var_type == "char":
                 code += f'{self.indent()}scanf(" %c", &{var_name});\n'
             elif var_type == "string":
-                code += f'{self.indent()}{var_name} = (char*)malloc(256);\n'
-                code += f'{self.indent()}scanf("%255s", {var_name});\n'
+                code += f'{self.indent()}{var_name} = (char*)malloc(4096);\n'
+                code += f'{self.indent()}fgets({var_name}, 4096, stdin);\n'
+                code += f'{self.indent()}{var_name}[strcspn({var_name}, "\\n")] = 0;\n'
             
             return code
         else:
@@ -284,7 +285,8 @@ class CCompiler:
             elif var_type == "char":
                 code += f'{self.indent()}scanf(" %c", &{var_name});\n'
             elif var_type == "string":
-                code += f'{self.indent()}scanf("%255s", {var_name});\n'
+                code += f'{self.indent()}fgets({var_name}, 4096, stdin);\n'
+                code += f'{self.indent()}{var_name}[strcspn({var_name}, "\\n")] = 0;\n'
             
             return code
         else:
