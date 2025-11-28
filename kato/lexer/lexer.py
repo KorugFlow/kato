@@ -175,11 +175,21 @@ class Lexer:
                 self.tokens.append(Token("ASTERISK", char, start_line, start_column))
                 self.advance()
             elif char == '+':
-                self.tokens.append(Token("PLUS", char, start_line, start_column))
-                self.advance()
+                if self.peek_char() == '+':
+                    self.tokens.append(Token("PLUS_PLUS", "++", start_line, start_column))
+                    self.advance()
+                    self.advance()
+                else:
+                    self.tokens.append(Token("PLUS", char, start_line, start_column))
+                    self.advance()
             elif char == '-':
-                self.tokens.append(Token("MINUS", char, start_line, start_column))
-                self.advance()
+                if self.peek_char() == '-':
+                    self.tokens.append(Token("MINUS_MINUS", "--", start_line, start_column))
+                    self.advance()
+                    self.advance()
+                else:
+                    self.tokens.append(Token("MINUS", char, start_line, start_column))
+                    self.advance()
             elif char == '/':
                 if self.peek_char() == '/':
                     self.tokens.append(Token("DOUBLE_SLASH", "//", start_line, start_column))

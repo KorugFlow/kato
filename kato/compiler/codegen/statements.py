@@ -1,6 +1,7 @@
 from parser.ast import (
     PrintStatement, ReturnStatement, VarDeclaration,
     CallStatement, IfStatement, Assignment,
+    WhileStatement, IncrementStatement, DecrementStatement,
     StringLiteral, NumberLiteral, FloatLiteral, Identifier, BinaryOp, InptCall
 )
 import re
@@ -24,6 +25,12 @@ class StatementCodegen:
             return self.compile_if(statement)
         elif isinstance(statement, Assignment):
             return self.compile_assignment(statement)
+        elif isinstance(statement, WhileStatement):
+            return self.compile_while(statement)
+        elif isinstance(statement, IncrementStatement):
+            return self.compile_increment(statement)
+        elif isinstance(statement, DecrementStatement):
+            return self.compile_decrement(statement)
     
     def compile_print(self, statement):
         values = statement.value if isinstance(statement.value, list) else [statement.value]
@@ -209,3 +216,21 @@ class StatementCodegen:
         else:
             c_value = self.expr_codegen.compile_expr(var_value, var_type)
             return f'{self.compiler.indent()}{var_name} = {c_value};\n'
+
+    def compile_while(self, statement):
+        condition = self.expr_codegen.compile_expr(statement.condition)
+        
+        code = f'{self.compiler.indent()}while ({condition}) {{\n'
+        self.compiler.indent_level += 1
+        for stmt in statement.body:
+            code += self.compile_statement(stmt)
+        self.compiler.indent_level -= 1
+        code += f'{self.compiler.indent()}}}\n'
+        
+        return code
+    
+    def compile_increment(self, statement):
+        return f'{self.compiler.indent()}{statement.name}++;\n'
+    
+    def compile_decrement(self, statement):
+        return f'{self.compiler.indent()}{statement.name}--;\n'

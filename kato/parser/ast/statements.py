@@ -48,3 +48,19 @@ class Assignment(ASTNode):
     def __init__(self, name, value):
         self.name = name
         self.value = value
+
+
+class WhileStatement(ASTNode):
+    def __init__(self, condition, body):
+        self.condition = condition
+        self.body = body
+
+
+class IncrementStatement(ASTNode):
+    def __init__(self, name):
+        self.name = name
+
+
+class DecrementStatement(ASTNode):
+    def __init__(self, name):
+        self.name = name

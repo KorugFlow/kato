@@ -13,4 +13,5 @@ class tokens:
         "if": "IF",
         "elif": "ELIF",
         "else": "ELSE",
+        "while": "WHILE",
     }

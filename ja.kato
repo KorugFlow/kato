@@ -1,5 +1,8 @@
 func main() {
-    var string echo = inpt("enter something");
-    print("*echo*");
+    var int a = 20;
+    while (a > 8) {
+        i--;
+        print(*a*);
+    }
 }
 

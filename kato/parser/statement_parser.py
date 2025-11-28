@@ -1,6 +1,7 @@
 from .ast.statements import (
     PrintStatement, ReturnStatement, VarDeclaration,
-    CallStatement, IfStatement, Assignment
+    CallStatement, IfStatement, Assignment,
+    WhileStatement, IncrementStatement, DecrementStatement
 )
 from .errors import KatoSyntaxError
 
@@ -23,8 +24,16 @@ class StatementParser:
             return self.parse_call_statement()
         elif token.type == "IF":
             return self.parse_if_statement()
+        elif token.type == "WHILE":
+            return self.parse_while_statement()
         elif token.type == "IDENTIFIER":
-            return self.parse_assignment()
+            next_token = self.parser.peek_token()
+            if next_token and next_token.type == "PLUS_PLUS":
+                return self.parse_increment()
+            elif next_token and next_token.type == "MINUS_MINUS":
+                return self.parse_decrement()
+            else:
+                return self.parse_assignment()
         else:
             raise KatoSyntaxError(
                 f"Unknown statement type '{token.value}'",
@@ -204,3 +213,54 @@ class StatementParser:
         self.parser.expect("SEMICOLON")
         
         return Assignment(name, value)
+
+    def parse_while_statement(self):
+        self.parser.expect("WHILE")
+        self.parser.expect("LPAREN")
+        
+        condition = self.expr_parser.parse_comparison()
+        
+        self.parser.expect("RPAREN")
+        self.parser.expect("LBRACE")
+        
+        body = []
+        while self.parser.current_token() and self.parser.current_token().type != "RBRACE":
+            body.append(self.parse_statement())
+        
+        self.parser.expect("RBRACE")
+        
+        return WhileStatement(condition, body)
+    
+    def parse_increment(self):
+        name_token = self.parser.current_token()
+        name = name_token.value
+        self.parser.advance()
+        self.parser.expect("PLUS_PLUS")
+        
+        semicolon_token = self.parser.current_token()
+        if semicolon_token is None or semicolon_token.type != "SEMICOLON":
+            raise KatoSyntaxError(
+                "Missing semicolon ';' after increment",
+                name_token.line, name_token.column,
+                self.parser.source_code
+            )
+        self.parser.expect("SEMICOLON")
+        
+        return IncrementStatement(name)
+    
+    def parse_decrement(self):
+        name_token = self.parser.current_token()
+        name = name_token.value
+        self.parser.advance()
+        self.parser.expect("MINUS_MINUS")
+        
+        semicolon_token = self.parser.current_token()
+        if semicolon_token is None or semicolon_token.type != "SEMICOLON":
+            raise KatoSyntaxError(
+                "Missing semicolon ';' after decrement",
+                name_token.line, name_token.column,
+                self.parser.source_code
+            )
+        self.parser.expect("SEMICOLON")
+        
+        return DecrementStatement(name)

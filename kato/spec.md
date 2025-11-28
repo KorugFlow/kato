@@ -151,6 +151,31 @@ func main() {
 }
 ```
 
+## Циклы
+
+Kato поддерживает цикл while:
+
+```
+var int i = 0;
+while (i < 10) {
+    print(*i* "\n");
+    i++;
+}
+```
+
+## Инкремент и декремент
+
+Увеличение и уменьшение переменной на 1:
+- `var++;` - увеличить на 1
+- `var--;` - уменьшить на 1
+
+Пример:
+```
+var int x = 5;
+x++;  // x = 6
+x--;  // x = 5
+```
+
 ## Комментарии
 
 Однострочные комментарии:
@@ -340,6 +365,31 @@ func printF(text) {
 func main() {
     call printF("hello world\n");
 }
+```
+
+## Loops
+
+Kato supports while loop:
+
+```
+var int i = 0;
+while (i < 10) {
+    print(*i* "\n");
+    i++;
+}
+```
+
+## Increment and Decrement
+
+Increase and decrease variable by 1:
+- `var++;` - increment by 1
+- `var--;` - decrement by 1
+
+Example:
+```
+var int x = 5;
+x++;  // x = 6
+x--;  // x = 5
 ```
 
 ## Comments
