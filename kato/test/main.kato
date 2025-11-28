@@ -1,7 +1,8 @@
-import welcome.kh
+import filesystem
 
 func main() {
 
-    call welcome();
+    var string content = file_read("hello.txt");
+    print("*content*");
 
 }

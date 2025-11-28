@@ -167,6 +167,11 @@ def main():
         for func_name in imported_functions.keys():
             parser_obj.defined_functions.add(func_name)
         
+        if "filesystem" in preprocessor.stdlib_imports:
+            from compiler.std.filesystem import FILESYSTEM_FUNCTIONS
+            for func_name in FILESYSTEM_FUNCTIONS.keys():
+                parser_obj.builtin_functions.add(func_name)
+        
         ast = parser_obj.parse()
         
         for func_name, func in imported_functions.items():
@@ -189,7 +194,7 @@ def main():
             print_ast(optimized_ast)
             print()
         
-        compiler = CCompiler(optimized_ast)
+        compiler = CCompiler(optimized_ast, stdlib_imports=preprocessor.stdlib_imports)
         c_code = compiler.compile()
         
         if args.advanced_debug:

@@ -1,6 +1,6 @@
 from parser.ast import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
-    Identifier, BinaryOp, InptCall, ArrayAccess
+    Identifier, BinaryOp, InptCall, ArrayAccess, FunctionCall
 )
 
 
@@ -43,5 +43,8 @@ class ExpressionCodegen:
                 return f"(printf({prompt}), (char[256]){{0}})"
             else:
                 return f"(printf({prompt}), 0)"
+        elif isinstance(expr, FunctionCall):
+            args = ", ".join([self.compile_expr(arg) for arg in expr.arguments])
+            return f"{expr.name}({args})"
         else:
             return "0"

@@ -42,3 +42,9 @@ class BinaryOp(ASTNode):
 class InptCall(ASTNode):
     def __init__(self, prompt):
         self.prompt = prompt
+
+
+class FunctionCall(ASTNode):
+    def __init__(self, name, arguments):
+        self.name = name
+        self.arguments = arguments

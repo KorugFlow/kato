@@ -10,12 +10,16 @@ class Preprocessor:
         self.processed_files = set()
         self.imported_functions = {}
         self.all_functions = []
+        self.stdlib_imports = set()
     
     def process(self, source_code):
         imports = self.extract_imports(source_code)
         
         for import_path in imports:
-            self.process_import(import_path)
+            if import_path in ["filesystem"]:
+                self.stdlib_imports.add(import_path)
+            else:
+                self.process_import(import_path)
         
         source_without_imports = self.remove_imports(source_code)
         

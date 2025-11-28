@@ -257,6 +257,95 @@ func main() {
 - Нельзя дублировать имена функций
 - Если файл не найден - ошибка
 
+## Стандартная библиотека (stdlib)
+
+### filesystem - Работа с файлами
+
+Для работы с файлами импортируйте библиотеку filesystem:
+
+```kato
+import filesystem;
+```
+
+Доступные функции:
+
+**file_read(filename)** - Читает содержимое файла
+- Параметры: `string filename` - имя файла
+- Возвращает: `string` - содержимое файла или пустую строку при ошибке
+
+```kato
+import filesystem;
+
+func main() {
+    var string content = file_read("hello.txt");
+    print("*content*\n");
+    return 0;
+}
+```
+
+**file_write(filename, content)** - Записывает содержимое в файл (перезаписывает)
+- Параметры: `string filename`, `string content`
+- Возвращает: `int` - 1 при успехе, 0 при ошибке
+
+```kato
+import filesystem;
+
+func main() {
+    var int result = file_write("output.txt", "Hello World");
+    if result == 1 {
+        print("File written successfully\n");
+    }
+    return 0;
+}
+```
+
+**file_append(filename, content)** - Добавляет содержимое в конец файла
+- Параметры: `string filename`, `string content`
+- Возвращает: `int` - 1 при успехе, 0 при ошибке
+
+```kato
+import filesystem;
+
+func main() {
+    var int result = file_append("log.txt", "New line\n");
+    return 0;
+}
+```
+
+**file_exists(filename)** - Проверяет существование файла
+- Параметры: `string filename`
+- Возвращает: `int` - 1 если файл существует, 0 если нет
+
+```kato
+import filesystem;
+
+func main() {
+    var int exists = file_exists("data.txt");
+    if exists == 1 {
+        print("File exists\n");
+    } else {
+        print("File not found\n");
+    }
+    return 0;
+}
+```
+
+**file_delete(filename)** - Удаляет файл
+- Параметры: `string filename`
+- Возвращает: `int` - 1 при успехе, 0 при ошибке
+
+```kato
+import filesystem;
+
+func main() {
+    var int result = file_delete("temp.txt");
+    if result == 1 {
+        print("File deleted\n");
+    }
+    return 0;
+}
+```
+
 ## c2kato - Транспилятор из C в Kato
 
 Kato включает транспилятор из C в Kato:
@@ -570,6 +659,95 @@ Rules:
 - Cannot import `main` function
 - Cannot duplicate function names
 - If file not found - error
+
+## Standard Library (stdlib)
+
+### filesystem - File Operations
+
+To work with files, import the filesystem library:
+
+```kato
+import filesystem;
+```
+
+Available functions:
+
+**file_read(filename)** - Reads file content
+- Parameters: `string filename` - file name
+- Returns: `string` - file content or empty string on error
+
+```kato
+import filesystem;
+
+func main() {
+    var string content = file_read("hello.txt");
+    print("*content*\n");
+    return 0;
+}
+```
+
+**file_write(filename, content)** - Writes content to file (overwrites)
+- Parameters: `string filename`, `string content`
+- Returns: `int` - 1 on success, 0 on error
+
+```kato
+import filesystem;
+
+func main() {
+    var int result = file_write("output.txt", "Hello World");
+    if result == 1 {
+        print("File written successfully\n");
+    }
+    return 0;
+}
+```
+
+**file_append(filename, content)** - Appends content to end of file
+- Parameters: `string filename`, `string content`
+- Returns: `int` - 1 on success, 0 on error
+
+```kato
+import filesystem;
+
+func main() {
+    var int result = file_append("log.txt", "New line\n");
+    return 0;
+}
+```
+
+**file_exists(filename)** - Checks if file exists
+- Parameters: `string filename`
+- Returns: `int` - 1 if file exists, 0 if not
+
+```kato
+import filesystem;
+
+func main() {
+    var int exists = file_exists("data.txt");
+    if exists == 1 {
+        print("File exists\n");
+    } else {
+        print("File not found\n");
+    }
+    return 0;
+}
+```
+
+**file_delete(filename)** - Deletes file
+- Parameters: `string filename`
+- Returns: `int` - 1 on success, 0 on error
+
+```kato
+import filesystem;
+
+func main() {
+    var int result = file_delete("temp.txt");
+    if result == 1 {
+        print("File deleted\n");
+    }
+    return 0;
+}
+```
 
 ## c2kato - C to Kato Transpiler
 

@@ -7,7 +7,7 @@ from .statements import (
 )
 from .expressions import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
-    Identifier, BinaryOp, InptCall, ArrayAccess
+    Identifier, BinaryOp, InptCall, ArrayAccess, FunctionCall
 )
 
 __all__ = [
@@ -17,5 +17,5 @@ __all__ = [
     'WhileStatement', 'IncrementStatement', 'DecrementStatement',
     'ArrayDeclaration', 'ArrayAssignment',
     'StringLiteral', 'NumberLiteral', 'FloatLiteral', 'CharLiteral',
-    'Identifier', 'BinaryOp', 'InptCall', 'ArrayAccess'
+    'Identifier', 'BinaryOp', 'InptCall', 'ArrayAccess', 'FunctionCall'
 ]

@@ -1,6 +1,6 @@
 from .ast.expressions import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
-    Identifier, BinaryOp, InptCall, ArrayAccess
+    Identifier, BinaryOp, InptCall, ArrayAccess, FunctionCall
 )
 from .errors import KatoSyntaxError
 
@@ -65,7 +65,22 @@ class ExpressionParser:
             name = token.value
             self.parser.advance()
             
-            if self.parser.current_token() and self.parser.current_token().type == "LBRACKET":
+            if self.parser.current_token() and self.parser.current_token().type == "LPAREN":
+                if name not in self.parser.defined_functions and name not in self.parser.builtin_functions:
+                    raise KatoSyntaxError(
+                        f"Unknown function '{name}'",
+                        token.line, token.column,
+                        self.parser.source_code
+                    )
+                self.parser.advance()
+                arguments = []
+                while self.parser.current_token() and self.parser.current_token().type != "RPAREN":
+                    arguments.append(self.parse_expression())
+                    if self.parser.current_token() and self.parser.current_token().type == "COMMA":
+                        self.parser.advance()
+                self.parser.expect("RPAREN")
+                return FunctionCall(name, arguments)
+            elif self.parser.current_token() and self.parser.current_token().type == "LBRACKET":
                 self.parser.advance()
                 index = self.parse_expression()
                 self.parser.expect("RBRACKET")
