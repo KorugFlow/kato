@@ -103,6 +103,15 @@ class StatementParser:
         name_token = self.parser.expect("IDENTIFIER")
         name = name_token.value
         
+        if name in self.parser.defined_variables:
+            raise KatoSyntaxError(
+                f"Variable '{name}' is already defined",
+                name_token.line, name_token.column,
+                self.parser.source_code
+            )
+        
+        self.parser.defined_variables.add(name)
+        
         self.parser.expect("EQUALS")
         
         value = self.expr_parser.parse_expression()
@@ -197,6 +206,14 @@ class StatementParser:
     def parse_assignment(self):
         name_token = self.parser.current_token()
         name = name_token.value
+        
+        if name not in self.parser.defined_variables:
+            raise KatoSyntaxError(
+                f"Variable '{name}' is not defined",
+                name_token.line, name_token.column,
+                self.parser.source_code
+            )
+        
         self.parser.advance()
         
         self.parser.expect("EQUALS")
@@ -234,6 +251,14 @@ class StatementParser:
     def parse_increment(self):
         name_token = self.parser.current_token()
         name = name_token.value
+        
+        if name not in self.parser.defined_variables:
+            raise KatoSyntaxError(
+                f"Variable '{name}' is not defined",
+                name_token.line, name_token.column,
+                self.parser.source_code
+            )
+        
         self.parser.advance()
         self.parser.expect("PLUS_PLUS")
         
@@ -251,6 +276,14 @@ class StatementParser:
     def parse_decrement(self):
         name_token = self.parser.current_token()
         name = name_token.value
+        
+        if name not in self.parser.defined_variables:
+            raise KatoSyntaxError(
+                f"Variable '{name}' is not defined",
+                name_token.line, name_token.column,
+                self.parser.source_code
+            )
+        
         self.parser.advance()
         self.parser.expect("MINUS_MINUS")
         

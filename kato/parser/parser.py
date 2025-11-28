@@ -11,6 +11,7 @@ class Parser:
         self.source_code = source_code
         self.defined_functions = set()
         self.builtin_functions = {"print"}
+        self.defined_variables = set()
         
         self.expr_parser = ExpressionParser(self)
         self.stmt_parser = StatementParser(self, self.expr_parser)
@@ -103,6 +104,10 @@ class Parser:
             )
         
         self.defined_functions.add(name)
+        
+        self.defined_variables = set()
+        for param in params:
+            self.defined_variables.add(param)
         
         self.expect("LBRACE")
         
