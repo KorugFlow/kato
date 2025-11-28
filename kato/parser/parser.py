@@ -1,4 +1,4 @@
-from kato.lexer.lexer import Token
+from lexer.lexer import Token
 
 
 class KatoSyntaxError(Exception):
