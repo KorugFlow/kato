@@ -15,4 +15,5 @@ class tokens:
         "elif": "ELIF",
         "else": "ELSE",
         "while": "WHILE",
+        "import": "IMPORT",
     }

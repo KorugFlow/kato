@@ -146,7 +146,12 @@ def main():
         return
     
     try:
-        lexer = Lexer(source_code)
+        from compiler.preprocessor import Preprocessor
+        
+        preprocessor = Preprocessor(input_path)
+        processed_source, imported_functions = preprocessor.process(source_code)
+        
+        lexer = Lexer(processed_source)
         tokens = lexer.tokenize()
         
         if args.advanced_debug:
@@ -157,8 +162,15 @@ def main():
                 print(token)
             print()
         
-        parser_obj = Parser(tokens, source_code)
+        parser_obj = Parser(tokens, processed_source)
+        
+        for func_name in imported_functions.keys():
+            parser_obj.defined_functions.add(func_name)
+        
         ast = parser_obj.parse()
+        
+        for func_name, func in imported_functions.items():
+            ast.functions.insert(0, func)
         
         if args.debug or args.advanced_debug:
             print("\n" + "="*60)

@@ -225,6 +225,38 @@ var int x = 20; // комментарий после кода
 - Весь код должен быть внутри функций
 - inpt можно использовать только при объявлении или изменении переменных
 
+## Импорт функций
+
+Kato поддерживает импорт функций из других файлов через .kh (Kato Header) файлы:
+
+**welcome.kato:**
+```kato
+func welcome() {
+    print("Hello to Kato!\n");
+}
+```
+
+**welcome.kh:**
+```
+$export welcome from welcome.kato
+```
+
+**main.kato:**
+```kato
+import welcome.kh;
+
+func main() {
+    call welcome();
+    return 0;
+}
+```
+
+Правила:
+- Все пути относительные
+- Нельзя импортировать функцию `main`
+- Нельзя дублировать имена функций
+- Если файл не найден - ошибка
+
 ## c2kato - Транспилятор из C в Kato
 
 Kato включает транспилятор из C в Kato:
@@ -506,6 +538,38 @@ var int x = 20; // comment after code
 - Function calls must have parentheses `()`, even if there are no arguments
 - All code must be inside functions
 - inpt can only be used when declaring or assigning variables
+
+## Function Import
+
+Kato supports importing functions from other files via .kh (Kato Header) files:
+
+**welcome.kato:**
+```kato
+func welcome() {
+    print("Hello to Kato!\n");
+}
+```
+
+**welcome.kh:**
+```
+$export welcome from welcome.kato
+```
+
+**main.kato:**
+```kato
+import welcome.kh;
+
+func main() {
+    call welcome();
+    return 0;
+}
+```
+
+Rules:
+- All paths are relative
+- Cannot import `main` function
+- Cannot duplicate function names
+- If file not found - error
 
 ## c2kato - C to Kato Transpiler
 

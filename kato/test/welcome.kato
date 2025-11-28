@@ -1,0 +1,7 @@
+func main() {
+     return 0;
+}
+
+func welcome() {
+    print("hello to kato! hello, bro!");
+}
