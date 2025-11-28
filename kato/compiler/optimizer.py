@@ -1,4 +1,4 @@
-from parser.parser import (
+from parser.ast import (
     Program, Function, PrintStatement, ReturnStatement,
     VarDeclaration, CallStatement
 )

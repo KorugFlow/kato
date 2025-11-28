@@ -5,7 +5,8 @@ import subprocess
 from pathlib import Path
 
 from lexer.lexer import Lexer
-from parser.parser import Parser, KatoSyntaxError
+from parser.parser import Parser
+from parser.errors import KatoSyntaxError
 from compiler.compiler import CCompiler
 from compiler.optimizer import Optimizer
 
