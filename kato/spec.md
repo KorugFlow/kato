@@ -8,3 +8,17 @@ func main() {
 }
 
 Типы функций динамические.
+
+
+
+
+Kato is a simple Japanese written in Python that compiles into C. When possible, the Kato compiler will automatically compile C into .exe if compilers are available in the Path.
+
+hello world:
+func main() {
+    print("Hello, World\n");
+    return 0;
+}
+
+
+The types of functions are dynamic.
