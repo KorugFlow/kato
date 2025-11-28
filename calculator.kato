@@ -1,0 +1,31 @@
+func main() {
+    print("calculator\n");
+    
+    var int a = inpt("enter first number: ");
+    var int b = inpt("enter second number: ");
+    var char op = inpt("enter operation (+, -, *, /): ");
+    
+    if op == '+' {
+        print("result: " *a* + *b* "\n");
+    }
+    elif op == '-' {
+        print("result: " *a* - *b* "\n");
+    }
+    elif op == '*' {
+        print("result: " *a* * *b* "\n");
+    }
+    elif op == '/' {
+        if b == 0 {
+            print("я не дебил\n");
+            return 666;
+        }
+        else {
+            print("result: " *a* / *b* "\n");
+        }
+    }
+    else {
+        print("unknown operation\n");
+    }
+    
+    return 0;
+}
