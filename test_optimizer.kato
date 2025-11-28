@@ -1,0 +1,8 @@
+func main() {
+    var int x = 20;
+    print("x = *x*\n");
+    return 0;
+    print("This should be removed\n");
+    var int y = 30;
+    print("This too\n");
+}

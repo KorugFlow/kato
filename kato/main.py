@@ -7,6 +7,7 @@ from pathlib import Path
 from lexer.lexer import Lexer
 from parser.parser import Parser, KatoSyntaxError
 from compiler.compiler import CCompiler
+from compiler.optimizer import Optimizer
 
 
 def find_c_compiler():
@@ -125,12 +126,22 @@ def main():
         
         if args.debug or args.advanced_debug:
             print("\n" + "="*60)
-            print("AST:")
+            print("AST (Before Optimization):")
             print("="*60)
             print_ast(ast)
             print()
         
-        compiler = CCompiler(ast)
+        optimizer = Optimizer(ast)
+        optimized_ast = optimizer.optimize()
+        
+        if args.debug or args.advanced_debug:
+            print("\n" + "="*60)
+            print("AST (After Optimization):")
+            print("="*60)
+            print_ast(optimized_ast)
+            print()
+        
+        compiler = CCompiler(optimized_ast)
         c_code = compiler.compile()
         
         if args.advanced_debug:
