@@ -89,6 +89,7 @@ def main():
     parser.add_argument('input_file', help='Input .kato file')
     parser.add_argument('-o', '--output', help='Output binary name (without extension)', default=None)
     parser.add_argument('-c', '--c-only', action='store_true', help='Generate C code only, do not compile to binary')
+    parser.add_argument('-c2kato', '--c2kato', action='store_true', help='Convert C code to Kato')
     parser.add_argument('-debug', '--debug', action='store_true', help='Show AST')
     parser.add_argument('-adv_debug', '--advanced-debug', action='store_true', help='Show tokens, AST, and C code')
     
@@ -100,7 +101,10 @@ def main():
         print(f"Error: File '{args.input_file}' not found")
         sys.exit(1)
     
-    if not input_path.suffix == '.kato':
+    if args.c2kato:
+        if not input_path.suffix == '.c':
+            print(f"Warning: File does not have .c extension for c2kato")
+    elif not input_path.suffix == '.kato':
         print(f"Warning: File does not have .kato extension")
     
     try:
@@ -109,6 +113,37 @@ def main():
     except Exception as e:
         print(f"Error reading file: {e}")
         sys.exit(1)
+    
+    if args.c2kato:
+        from c2kato.c2kato import convert_c_to_kato
+        
+        try:
+            kato_code = convert_c_to_kato(source_code, debug=args.debug)
+            
+            if not kato_code:
+                print("Warning: Generated Kato code is empty")
+            
+            if args.output:
+                output_file = f"{args.output}.kato"
+            else:
+                output_file = input_path.with_suffix('.kato')
+            
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(kato_code)
+            
+            print(f"Kato code generated: {output_file}")
+            
+            if args.debug:
+                print("\nGenerated Kato code:")
+                print(kato_code)
+        
+        except Exception as e:
+            print(f"c2kato error: {e}")
+            import traceback
+            traceback.print_exc()
+            sys.exit(1)
+        
+        return
     
     try:
         lexer = Lexer(source_code)

@@ -225,6 +225,41 @@ var int x = 20; // комментарий после кода
 - Весь код должен быть внутри функций
 - inpt можно использовать только при объявлении или изменении переменных
 
+## c2kato - Транспилятор из C в Kato
+
+Kato включает транспилятор из C в Kato:
+
+```bash
+python kato/main.py input.c -c2kato -o output
+```
+
+c2kato конвертирует базовый C код в синтаксис Kato:
+- `int`, `float`, `char` типы → Kato типы
+- `printf` → `print` с автоматической конвертацией `%d`, `%s` в `*var*`
+- `for` циклы → `while` циклы
+- Массивы C → массивы Kato
+- Функции C → функции Kato
+
+Пример:
+```c
+// input.c
+int main() {
+    int arr[3] = {10, 20, 30};
+    printf("Value: %d\n", arr[0]);
+    return 0;
+}
+```
+
+Конвертируется в:
+```kato
+// output.kato
+func main() {
+    mass int arr = {10, 20, 30};
+    print("Value: *arr[0]*\n");
+    return 0;
+}
+```
+
 ## Ошибки
 
 - Если нет функции `main` - ошибка
@@ -471,6 +506,41 @@ var int x = 20; // comment after code
 - Function calls must have parentheses `()`, even if there are no arguments
 - All code must be inside functions
 - inpt can only be used when declaring or assigning variables
+
+## c2kato - C to Kato Transpiler
+
+Kato includes a transpiler from C to Kato:
+
+```bash
+python kato/main.py input.c -c2kato -o output
+```
+
+c2kato converts basic C code to Kato syntax:
+- `int`, `float`, `char` types → Kato types
+- `printf` → `print` with automatic conversion of `%d`, `%s` to `*var*`
+- `for` loops → `while` loops
+- C arrays → Kato arrays
+- C functions → Kato functions
+
+Example:
+```c
+// input.c
+int main() {
+    int arr[3] = {10, 20, 30};
+    printf("Value: %d\n", arr[0]);
+    return 0;
+}
+```
+
+Converts to:
+```kato
+// output.kato
+func main() {
+    mass int arr = {10, 20, 30};
+    print("Value: *arr[0]*\n");
+    return 0;
+}
+```
 
 ## Errors
 

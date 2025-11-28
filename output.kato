@@ -2,7 +2,8 @@ func main() {
     mass int arr = {10, 20, 30};
     var int i = 0;
     while (i < 3) {
-        print(*arr[i]* "\n");
+        print("*arr[i]*\n");
         i++;
     }
 }
+

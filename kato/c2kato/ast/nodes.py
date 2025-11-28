@@ -1,0 +1,2 @@
+class CASTNode:
+    pass

@@ -1,0 +1,15 @@
+C_KEYWORDS = {
+    "int": "INT_TYPE",
+    "float": "FLOAT_TYPE",
+    "char": "CHAR_TYPE",
+    "void": "VOID_TYPE",
+    "if": "IF",
+    "else": "ELSE",
+    "while": "WHILE",
+    "for": "FOR",
+    "return": "RETURN",
+    "printf": "PRINTF",
+    "scanf": "SCANF",
+    "include": "INCLUDE",
+    "define": "DEFINE",
+}
