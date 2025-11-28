@@ -1,0 +1,145 @@
+from .tokens import tokens as token_map
+
+
+class Token:
+    def __init__(self, type, value, line, column):
+        self.type = type
+        self.value = value
+        self.line = line
+        self.column = column
+    
+    def __repr__(self):
+        return f"Token({self.type}, {repr(self.value)}, {self.line}:{self.column})"
+
+
+class Lexer:
+    def __init__(self, source_code):
+        self.source = source_code
+        self.pos = 0
+        self.line = 1
+        self.column = 1
+        self.tokens = []
+        self.keywords = token_map.tokens
+    
+    def current_char(self):
+        if self.pos >= len(self.source):
+            return None
+        return self.source[self.pos]
+    
+    def peek_char(self, offset=1):
+        peek_pos = self.pos + offset
+        if peek_pos >= len(self.source):
+            return None
+        return self.source[peek_pos]
+    
+    def advance(self):
+        if self.pos < len(self.source):
+            if self.source[self.pos] == '\n':
+                self.line += 1
+                self.column = 1
+            else:
+                self.column += 1
+            self.pos += 1
+    
+    def skip_whitespace(self):
+        while self.current_char() and self.current_char() in ' \t\r\n':
+            self.advance()
+    
+    def read_string(self):
+        start_line = self.line
+        start_column = self.column
+        quote_char = self.current_char()
+        self.advance()
+        
+        string_value = ""
+        while self.current_char() and self.current_char() != quote_char:
+            if self.current_char() == '\\':
+                self.advance()
+                escape_char = self.current_char()
+                if escape_char == 'n':
+                    string_value += '\n'
+                elif escape_char == 't':
+                    string_value += '\t'
+                elif escape_char == 'r':
+                    string_value += '\r'
+                elif escape_char == '\\':
+                    string_value += '\\'
+                elif escape_char == quote_char:
+                    string_value += quote_char
+                else:
+                    string_value += escape_char
+                self.advance()
+            else:
+                string_value += self.current_char()
+                self.advance()
+        
+        if self.current_char() == quote_char:
+            self.advance()
+        else:
+            raise SyntaxError(f"Come on, seriously?")
+        
+        return Token("STRING", string_value, start_line, start_column)
+    
+    def read_number(self):
+        start_line = self.line
+        start_column = self.column
+        number_str = ""
+        
+        while self.current_char() and self.current_char().isdigit():
+            number_str += self.current_char()
+            self.advance()
+        
+        return Token("NUMBER", int(number_str), start_line, start_column)
+    
+    def read_identifier(self):
+        start_line = self.line
+        start_column = self.column
+        identifier = ""
+        
+        while self.current_char() and (self.current_char().isalnum() or self.current_char() == '_'):
+            identifier += self.current_char()
+            self.advance()
+        
+        if identifier in self.keywords:
+            token_type = self.keywords[identifier]
+            return Token(token_type, identifier, start_line, start_column)
+        else:
+            return Token("IDENTIFIER", identifier, start_line, start_column)
+    
+    def tokenize(self):
+        while self.current_char():
+            self.skip_whitespace()
+            
+            if not self.current_char():
+                break
+            
+            char = self.current_char()
+            start_line = self.line
+            start_column = self.column
+            
+            if char in '"\'':
+                self.tokens.append(self.read_string())
+            elif char.isdigit():
+                self.tokens.append(self.read_number())
+            elif char.isalpha() or char == '_':
+                self.tokens.append(self.read_identifier())
+            elif char == '{':
+                self.tokens.append(Token("LBRACE", char, start_line, start_column))
+                self.advance()
+            elif char == '}':
+                self.tokens.append(Token("RBRACE", char, start_line, start_column))
+                self.advance()
+            elif char == '(':
+                self.tokens.append(Token("LPAREN", char, start_line, start_column))
+                self.advance()
+            elif char == ')':
+                self.tokens.append(Token("RPAREN", char, start_line, start_column))
+                self.advance()
+            elif char == ';':
+                self.tokens.append(Token("SEMICOLON", char, start_line, start_column))
+                self.advance()
+            else:
+                raise SyntaxError(f"Dude, what even is '{char}' at {start_line}:{start_column}? I have no idea what you want from me here.")
+        
+        self.tokens.append(Token("EOF", None, self.line, self.column))
+        return self.tokens
