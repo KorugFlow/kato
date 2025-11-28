@@ -12,7 +12,7 @@ func main() {
 
 
 
-Kato is a simple Japanese written in Python that compiles into C. When possible, the Kato compiler will automatically compile C into .exe if compilers are available in the Path.
+Kato is a simple programming languague written in Python that compiles into C. When possible, the Kato compiler will automatically compile C into .exe if compilers are available in the Path.
 
 hello world:
 func main() {
