@@ -1,7 +1,7 @@
 from parser.parser import (
     Program, Function, PrintStatement, ReturnStatement,
     VarDeclaration, CallStatement,
-    StringLiteral, NumberLiteral, FloatLiteral, CharLiteral, Identifier
+    StringLiteral, NumberLiteral, FloatLiteral, CharLiteral, Identifier, BinaryOp
 )
 import re
 
@@ -69,56 +69,73 @@ class CCompiler:
             return self.compile_call(statement)
     
     def compile_print(self, statement):
-        value = statement.value
+        values = statement.value if isinstance(statement.value, list) else [statement.value]
         
-        if isinstance(value, StringLiteral):
-            string_value = value.value
-            
-            var_pattern = r'\*(\w+)\*'
-            vars_in_string = re.findall(var_pattern, string_value)
-            
-            if vars_in_string:
-                format_string = string_value
-                printf_args = []
+        format_parts = []
+        printf_args = []
+        
+        for value in values:
+            if isinstance(value, StringLiteral):
+                string_value = value.value
                 
-                for var_name in vars_in_string:
-                    if var_name in self.variables:
-                        var_type = self.variables[var_name]
-                        
-                        if var_type == "int":
-                            format_string = format_string.replace(f"*{var_name}*", "%d", 1)
-                        elif var_type == "float":
-                            format_string = format_string.replace(f"*{var_name}*", "%f", 1)
-                        elif var_type == "char":
-                            format_string = format_string.replace(f"*{var_name}*", "%c", 1)
-                        elif var_type == "string":
-                            format_string = format_string.replace(f"*{var_name}*", "%s", 1)
-                        
-                        printf_args.append(var_name)
+                var_pattern = r'\*(\w+)\*'
+                vars_in_string = re.findall(var_pattern, string_value)
                 
-                escaped_string = format_string.replace('\\', '\\\\').replace('\n', '\\n').replace('\t', '\\t').replace('\r', '\\r').replace('"', '\\"')
-                args_str = ", ".join(printf_args)
-                return f'{self.indent()}printf("{escaped_string}", {args_str});\n'
-            else:
-                escaped_string = string_value.replace('\\', '\\\\').replace('\n', '\\n').replace('\t', '\\t').replace('\r', '\\r').replace('"', '\\"')
-                return f'{self.indent()}printf("{escaped_string}");\n'
-        elif isinstance(value, NumberLiteral):
-            return f'{self.indent()}printf("%d", {value.value});\n'
-        elif isinstance(value, FloatLiteral):
-            return f'{self.indent()}printf("%f", {value.value});\n'
-        elif isinstance(value, Identifier):
-            var_name = value.name
-            if var_name in self.variables:
-                var_type = self.variables[var_name]
-                if var_type == "int":
-                    return f'{self.indent()}printf("%d", {var_name});\n'
-                elif var_type == "float":
-                    return f'{self.indent()}printf("%f", {var_name});\n'
-                elif var_type == "char":
-                    return f'{self.indent()}printf("%c", {var_name});\n'
-                elif var_type == "string":
-                    return f'{self.indent()}printf("%s", {var_name});\n'
-            return f'{self.indent()}printf("%s", {var_name});\n'
+                if vars_in_string:
+                    format_string = string_value
+                    
+                    for var_name in vars_in_string:
+                        if var_name in self.variables:
+                            var_type = self.variables[var_name]
+                            
+                            if var_type == "int":
+                                format_string = format_string.replace(f"*{var_name}*", "%d", 1)
+                            elif var_type == "float":
+                                format_string = format_string.replace(f"*{var_name}*", "%f", 1)
+                            elif var_type == "char":
+                                format_string = format_string.replace(f"*{var_name}*", "%c", 1)
+                            elif var_type == "string":
+                                format_string = format_string.replace(f"*{var_name}*", "%s", 1)
+                            
+                            printf_args.append(var_name)
+                    
+                    format_parts.append(format_string)
+                else:
+                    format_parts.append(string_value)
+            elif isinstance(value, NumberLiteral):
+                format_parts.append("%d")
+                printf_args.append(str(value.value))
+            elif isinstance(value, FloatLiteral):
+                format_parts.append("%f")
+                printf_args.append(str(value.value))
+            elif isinstance(value, Identifier):
+                var_name = value.name
+                if var_name in self.variables:
+                    var_type = self.variables[var_name]
+                    if var_type == "int":
+                        format_parts.append("%d")
+                    elif var_type == "float":
+                        format_parts.append("%f")
+                    elif var_type == "char":
+                        format_parts.append("%c")
+                    elif var_type == "string":
+                        format_parts.append("%s")
+                    printf_args.append(var_name)
+                else:
+                    format_parts.append("%s")
+                    printf_args.append(var_name)
+            elif isinstance(value, BinaryOp):
+                format_parts.append("%d")
+                printf_args.append(self.compile_expr(value))
+        
+        format_string = "".join(format_parts)
+        escaped_string = format_string.replace('\\', '\\\\').replace('\n', '\\n').replace('\t', '\\t').replace('\r', '\\r').replace('"', '\\"')
+        
+        if printf_args:
+            args_str = ", ".join(printf_args)
+            return f'{self.indent()}printf("{escaped_string}", {args_str});\n'
+        else:
+            return f'{self.indent()}printf("{escaped_string}");\n'
     
     def compile_return(self, statement):
         value = statement.value
@@ -147,19 +164,7 @@ class CCompiler:
         }
         c_type = c_type_map.get(var_type, "int")
         
-        if isinstance(var_value, NumberLiteral):
-            c_value = str(var_value.value)
-        elif isinstance(var_value, FloatLiteral):
-            c_value = str(var_value.value)
-        elif isinstance(var_value, StringLiteral):
-            escaped_string = var_value.value.replace('\\', '\\\\').replace('\n', '\\n').replace('\t', '\\t').replace('\r', '\\r').replace('"', '\\"')
-            c_value = f'"{escaped_string}"'
-        elif isinstance(var_value, CharLiteral):
-            c_value = f"'{var_value.value}'"
-        elif isinstance(var_value, Identifier):
-            c_value = var_value.name
-        else:
-            c_value = "0"
+        c_value = self.compile_expr(var_value)
         
         return f'{self.indent()}{c_type} {var_name} = {c_value};\n'
     
@@ -170,16 +175,25 @@ class CCompiler:
         if arguments:
             compiled_args = []
             for arg in arguments:
-                if isinstance(arg, StringLiteral):
-                    escaped_string = arg.value.replace('\\', '\\\\').replace('\n', '\\n').replace('\t', '\\t').replace('\r', '\\r').replace('"', '\\"')
-                    compiled_args.append(f'"{escaped_string}"')
-                elif isinstance(arg, NumberLiteral):
-                    compiled_args.append(str(arg.value))
-                elif isinstance(arg, FloatLiteral):
-                    compiled_args.append(str(arg.value))
-                elif isinstance(arg, Identifier):
-                    compiled_args.append(arg.name)
+                compiled_args.append(self.compile_expr(arg))
             args_str = ", ".join(compiled_args)
             return f'{self.indent()}{func_name}({args_str});\n'
         
         return f'{self.indent()}{func_name}();\n'
+    
+    def compile_expr(self, expr):
+        if isinstance(expr, StringLiteral):
+            escaped_string = expr.value.replace('\\', '\\\\').replace('\n', '\\n').replace('\t', '\\t').replace('\r', '\\r').replace('"', '\\"')
+            return f'"{escaped_string}"'
+        elif isinstance(expr, NumberLiteral):
+            return str(expr.value)
+        elif isinstance(expr, FloatLiteral):
+            return str(expr.value)
+        elif isinstance(expr, Identifier):
+            return expr.name
+        elif isinstance(expr, BinaryOp):
+            left = self.compile_expr(expr.left)
+            right = self.compile_expr(expr.right)
+            return f"({left} {expr.operator} {right})"
+        else:
+            return "0"

@@ -1,0 +1,14 @@
+func main() {
+    var int x = 20;
+    var int b = 10;
+    var int sum = *x* + *b*;
+    
+    print("x = *x*\n");
+    print("b = *b*\n");
+    print("sum = *sum*\n");
+    print("x + b = ");
+    print("sum of x and b:" *x* + *b*);
+    print("\n");
+    
+    return 0;
+}

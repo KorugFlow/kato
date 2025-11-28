@@ -155,6 +155,23 @@ class Lexer:
             elif char == '*':
                 self.tokens.append(Token("ASTERISK", char, start_line, start_column))
                 self.advance()
+            elif char == '+':
+                self.tokens.append(Token("PLUS", char, start_line, start_column))
+                self.advance()
+            elif char == '-':
+                self.tokens.append(Token("MINUS", char, start_line, start_column))
+                self.advance()
+            elif char == '/':
+                if self.peek_char() == '/':
+                    self.tokens.append(Token("DOUBLE_SLASH", "//", start_line, start_column))
+                    self.advance()
+                    self.advance()
+                else:
+                    self.tokens.append(Token("SLASH", char, start_line, start_column))
+                    self.advance()
+            elif char == '%':
+                self.tokens.append(Token("PERCENT", char, start_line, start_column))
+                self.advance()
             else:
                 raise SyntaxError(f"Dude, what even is '{char}' at {start_line}:{start_column}? I have no idea what you want from me here.")
         

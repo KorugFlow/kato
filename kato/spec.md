@@ -30,13 +30,35 @@ var int age = 20;
 print("My age is: *age*\n");
 ```
 
-**ВАЖНО:** Идентификаторы `*var*` работают только внутри строк в кавычках!
+
 
 print может выводить:
 - Строки: `print("Hello\n");`
 - Числа: `print(20);`
 - Переменные напрямую: `print(x);`
+- Переменные через `*var*`: `print(*x*);` (только для int и float)
 - Переменные в строке через идентификаторы: `print("Value: *x*");`
+- Арифметические выражения: `print(*x* + *y*);` или `print(x + y);`
+- Несколько значений: `print("hello" 20 "how are you\n");`
+
+## Арифметика
+
+Kato поддерживает арифметические операции:
+- `+` - сложение
+- `-` - вычитание
+- `*` - умножение
+- `/` - деление
+- `//` - целочисленное деление
+- `%` - остаток от деления
+
+Примеры:
+```
+var int x = 20;
+var int b = 10;
+var int sum = *x* + *b*;
+var int result = (*x* + *b*) * 2;
+print(*x* + *b*);
+```
 
 ## Пользовательские функции
 
@@ -128,13 +150,35 @@ var int age = 20;
 print("My age is: *age*\n");
 ```
 
-**IMPORTANT:** The `*var*` identifiers only work inside quoted strings!
+
 
 print can output:
 - Strings: `print("Hello\n");`
 - Numbers: `print(20);`
 - Variables directly: `print(x);`
+- Variables through `*var*`: `print(*x*);` (only for int and float)
 - Variables in strings through identifiers: `print("Value: *x*");`
+- Arithmetic expressions: `print(*x* + *y*);` or `print(x + y);`
+- Multiple values: `print("hello" 20 "how are you\n");`
+
+## Arithmetic
+
+Kato supports arithmetic operations:
+- `+` - addition
+- `-` - subtraction
+- `*` - multiplication
+- `/` - division
+- `//` - integer division
+- `%` - modulo
+
+Examples:
+```
+var int x = 20;
+var int b = 10;
+var int sum = *x* + *b*;
+var int result = (*x* + *b*) * 2;
+print(*x* + *b*);
+```
 
 ## User-defined Functions
 

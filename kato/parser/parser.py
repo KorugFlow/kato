@@ -108,6 +108,13 @@ class Identifier(ASTNode):
         self.name = name
 
 
+class BinaryOp(ASTNode):
+    def __init__(self, left, operator, right):
+        self.left = left
+        self.operator = operator
+        self.right = right
+
+
 class Parser:
     def __init__(self, tokens, source_code=None):
         self.tokens = tokens
@@ -238,7 +245,15 @@ class Parser:
         self.expect("PRINT")
         self.expect("LPAREN")
         
-        value = self.parse_expression()
+        values = []
+        while self.current_token() and self.current_token().type != "RPAREN":
+            values.append(self.parse_expression())
+            
+            if self.current_token() and self.current_token().type != "RPAREN":
+                if self.current_token().type in ["STRING", "NUMBER", "FLOAT_NUMBER", "IDENTIFIER", "ASTERISK", "LPAREN"]:
+                    continue
+                else:
+                    break
         
         self.expect("RPAREN")
         
@@ -251,7 +266,7 @@ class Parser:
             )
         self.expect("SEMICOLON")
         
-        return PrintStatement(value)
+        return PrintStatement(values)
     
     def parse_return_statement(self):
         return_token = self.current_token()
@@ -271,6 +286,43 @@ class Parser:
         return ReturnStatement(value)
     
     def parse_expression(self):
+        return self.parse_additive()
+    
+    def parse_additive(self):
+        left = self.parse_multiplicative()
+        
+        while self.current_token() and self.current_token().type in ["PLUS", "MINUS"]:
+            op_token = self.current_token()
+            operator = op_token.value
+            self.advance()
+            right = self.parse_multiplicative()
+            left = BinaryOp(left, operator, right)
+        
+        return left
+    
+    def parse_multiplicative(self):
+        left = self.parse_primary()
+        
+        while self.current_token() and self.current_token().type in ["ASTERISK", "SLASH", "DOUBLE_SLASH", "PERCENT"]:
+            if self.current_token().type == "ASTERISK":
+                next_token = self.peek_token()
+                if next_token and next_token.type == "IDENTIFIER":
+                    peek_after = self.peek_token(2)
+                    if peek_after and peek_after.type == "ASTERISK":
+                        break
+            
+            op_token = self.current_token()
+            if op_token.type == "DOUBLE_SLASH":
+                operator = "//"
+            else:
+                operator = op_token.value
+            self.advance()
+            right = self.parse_primary()
+            left = BinaryOp(left, operator, right)
+        
+        return left
+    
+    def parse_primary(self):
         token = self.current_token()
         
         if token.type == "STRING":
@@ -285,6 +337,16 @@ class Parser:
         elif token.type == "IDENTIFIER":
             self.advance()
             return Identifier(token.value)
+        elif token.type == "ASTERISK":
+            self.advance()
+            var_token = self.expect("IDENTIFIER")
+            self.expect("ASTERISK")
+            return Identifier(var_token.value)
+        elif token.type == "LPAREN":
+            self.advance()
+            expr = self.parse_expression()
+            self.expect("RPAREN")
+            return expr
         else:
             raise KatoSyntaxError(
                 f"Expected expression (string, number, or identifier), got '{token.value}'",
