@@ -112,7 +112,19 @@ class KatoGenerator:
         
         elif isinstance(stmt, PrintStatement):
             values = stmt.value if isinstance(stmt.value, list) else [stmt.value]
-            values_str = " ".join([self.generate_expression(v) for v in values])
+            
+            result_parts = []
+            for v in values:
+                expr_str = self.generate_expression(v)
+                
+                if isinstance(v, Identifier) and expr_str.startswith("*") and expr_str.endswith("*"):
+                    result_parts.append(expr_str)
+                elif isinstance(v, StringLiteral):
+                    result_parts.append(f'"{v.value}"')
+                else:
+                    result_parts.append(expr_str)
+            
+            values_str = " ".join(result_parts)
             return f"{self.indent()}print({values_str});\n"
         
         return ""

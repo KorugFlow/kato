@@ -13,7 +13,6 @@ class PrintfConverter:
         if not isinstance(format_string, StringLiteral):
             return printf_args
         
-        result_parts = []
         format_str = format_string.value
         
         pattern = r'%[dfsci]'
@@ -23,25 +22,35 @@ class PrintfConverter:
         if not specifiers:
             return [StringLiteral(format_str)]
         
-        result = ""
+        result_parts = []
         var_index = 0
         
         for i, part in enumerate(parts):
-            result += part
+            if part:
+                result_parts.append(StringLiteral(part))
             
             if i < len(specifiers) and var_index < len(variables):
+                spec = specifiers[i]
                 var = variables[var_index]
                 
-                if isinstance(var, Identifier):
-                    result += f"*{var.name}*"
-                elif isinstance(var, ArrayAccess):
-                    result += f"*{var.name}[{self.expr_to_str(var.index)}]*"
+                if spec in ['%d', '%i', '%f']:
+                    if isinstance(var, Identifier):
+                        result_parts.append(Identifier(f"*{var.name}*"))
+                    elif isinstance(var, ArrayAccess):
+                        result_parts.append(Identifier(f"*{var.name}[{self.expr_to_str(var.index)}]*"))
+                    else:
+                        result_parts.append(var)
                 else:
-                    result += str(var)
+                    if isinstance(var, Identifier):
+                        result_parts.append(StringLiteral(f"*{var.name}*"))
+                    elif isinstance(var, ArrayAccess):
+                        result_parts.append(StringLiteral(f"*{var.name}[{self.expr_to_str(var.index)}]*"))
+                    else:
+                        result_parts.append(var)
                 
                 var_index += 1
         
-        return [StringLiteral(result)]
+        return result_parts
     
     def expr_to_str(self, expr):
         if isinstance(expr, Identifier):
