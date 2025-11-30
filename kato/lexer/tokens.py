@@ -19,4 +19,5 @@ class tokens:
         "switch": "SWITCH",
         "case": "CASE",
         "default": "DEFAULT",
+        "convert": "CONVERT",
     }

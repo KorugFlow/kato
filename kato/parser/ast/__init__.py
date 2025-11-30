@@ -3,7 +3,8 @@ from .statements import (
     Program, Function, PrintStatement, ReturnStatement,
     VarDeclaration, CallStatement, IfStatement, Assignment,
     WhileStatement, IncrementStatement, DecrementStatement,
-    ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause
+    ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause,
+    ConvertStatement
 )
 from .expressions import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
@@ -16,6 +17,7 @@ __all__ = [
     'VarDeclaration', 'CallStatement', 'IfStatement', 'Assignment',
     'WhileStatement', 'IncrementStatement', 'DecrementStatement',
     'ArrayDeclaration', 'ArrayAssignment', 'SwitchStatement', 'CaseClause',
+    'ConvertStatement',
     'StringLiteral', 'NumberLiteral', 'FloatLiteral', 'CharLiteral',
     'Identifier', 'BinaryOp', 'InptCall', 'ArrayAccess', 'FunctionCall'
 ]

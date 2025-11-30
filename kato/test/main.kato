@@ -1,30 +1,7 @@
-func calc(a, b, op) {
-    if op == '+' {
-        print("Result: *a* + *b* = " (*a* + *b*) "\n");
-    }
-    elif op == '-' {
-        print("Result: *a* - *b* = " (*a* - *b*) "\n");
-    }
-    elif op == '*' {
-        print("Result: *a* * *b* = " (*a* * *b*) "\n");
-    }
-    elif op == '/' {
-        print("Result: *a* / *b* = " (*a* / *b*) "\n");
-    }
-    elif op == '%' {
-        print("Result: *a* % *b* = " (*a* % *b*) "\n");
-    }
-    else {
-        print("Ты чё за хуйню ввёл?\n");
-    }
-}
-
 func main() {
-    var float a = inpt("Enter first number: ");
-    var float b = inpt("Enter second number: ");
-    var char op = inpt("Enter operator (+ - * / %): ");
-
-    call calc(a, b, op);
-
+    var string a = "5";
+    convert *a* > int;
+    convert *a* > float;
+    convert *a* > string;
     return 0;
 }

@@ -91,3 +91,9 @@ class CaseClause(ASTNode):
     def __init__(self, value, body):
         self.value = value
         self.body = body
+
+
+class ConvertStatement(ASTNode):
+    def __init__(self, expression, target_type):
+        self.expression = expression
+        self.target_type = target_type

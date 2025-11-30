@@ -3,6 +3,7 @@ from parser.ast import (
     CallStatement, IfStatement, Assignment,
     WhileStatement, IncrementStatement, DecrementStatement,
     ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause,
+    ConvertStatement,
     StringLiteral, NumberLiteral, FloatLiteral, Identifier, BinaryOp, InptCall, ArrayAccess, CharLiteral
 )
 import re
@@ -38,6 +39,8 @@ class StatementCodegen:
             return self.compile_array_assignment(statement)
         elif isinstance(statement, SwitchStatement):
             return self.compile_switch(statement)
+        elif isinstance(statement, ConvertStatement):
+            return self.compile_convert(statement)
         else:
             raise ValueError(f"Unknown statement type: {type(statement).__name__}")
     
@@ -319,6 +322,82 @@ class StatementCodegen:
                 code += self.compile_statement(stmt)
             code += f'{self.compiler.indent()}break;\n'
             self.compiler.indent_level -= 1
+        
+        self.compiler.indent_level -= 1
+        code += f'{self.compiler.indent()}}}\n'
+        
+        return code
+    
+    def compile_convert(self, statement):
+        self.compiler.uses_conversion = True
+        
+        expr = self.expr_codegen.compile_expr(statement.expression)
+        target_type = statement.target_type
+        
+        c_type_map = {
+            "int": "int",
+            "float": "float",
+            "char": "char",
+            "string": "char*"
+        }
+        c_target = c_type_map.get(target_type, "int")
+        
+        code = f'{self.compiler.indent()}{{\n'
+        self.compiler.indent_level += 1
+        
+        if target_type == "int":
+            code += f'{self.compiler.indent()}if (strcmp({expr}, "") == 0) {{\n'
+            self.compiler.indent_level += 1
+            code += f'{self.compiler.indent()}fprintf(stderr, "Error: Cannot convert empty string to int\\n");\n'
+            self.compiler.indent_level -= 1
+            code += f'{self.compiler.indent()}}} else {{\n'
+            self.compiler.indent_level += 1
+            code += f'{self.compiler.indent()}char* endptr;\n'
+            code += f'{self.compiler.indent()}long val = strtol({expr}, &endptr, 10);\n'
+            code += f'{self.compiler.indent()}if (*endptr != \'\\0\') {{\n'
+            self.compiler.indent_level += 1
+            code += f'{self.compiler.indent()}fprintf(stderr, "Error: Cannot convert \\"" "%s" "\\" to int\\n", {expr});\n'
+            self.compiler.indent_level -= 1
+            code += f'{self.compiler.indent()}}} else {{\n'
+            self.compiler.indent_level += 1
+            code += f'{self.compiler.indent()}{expr} = (char*)malloc(32);\n'
+            code += f'{self.compiler.indent()}sprintf({expr}, "%d", (int)val);\n'
+            self.compiler.indent_level -= 1
+            code += f'{self.compiler.indent()}}}  \n'
+            self.compiler.indent_level -= 1
+            code += f'{self.compiler.indent()}}}  \n'
+        
+        elif target_type == "float":
+            code += f'{self.compiler.indent()}if (strcmp({expr}, "") == 0) {{\n'
+            self.compiler.indent_level += 1
+            code += f'{self.compiler.indent()}fprintf(stderr, "Error: Cannot convert empty string to float\\n");\n'
+            self.compiler.indent_level -= 1
+            code += f'{self.compiler.indent()}}} else {{\n'
+            self.compiler.indent_level += 1
+            code += f'{self.compiler.indent()}char* endptr;\n'
+            code += f'{self.compiler.indent()}double val = strtod({expr}, &endptr);\n'
+            code += f'{self.compiler.indent()}if (*endptr != \'\\0\') {{\n'
+            self.compiler.indent_level += 1
+            code += f'{self.compiler.indent()}fprintf(stderr, "Error: Cannot convert \\"" "%s" "\\" to float\\n", {expr});\n'
+            self.compiler.indent_level -= 1
+            code += f'{self.compiler.indent()}}} else {{\n'
+            self.compiler.indent_level += 1
+            code += f'{self.compiler.indent()}{expr} = (char*)malloc(32);\n'
+            code += f'{self.compiler.indent()}sprintf({expr}, "%f", (float)val);\n'
+            self.compiler.indent_level -= 1
+            code += f'{self.compiler.indent()}}}  \n'
+            self.compiler.indent_level -= 1
+            code += f'{self.compiler.indent()}}}  \n'
+        
+        elif target_type == "char":
+            code += f'{self.compiler.indent()}if (strlen({expr}) > 0) {{\n'
+            self.compiler.indent_level += 1
+            code += f'{self.compiler.indent()}{expr}[1] = \'\\0\';\n'
+            self.compiler.indent_level -= 1
+            code += f'{self.compiler.indent()}}}  \n'
+        
+        elif target_type == "string":
+            pass
         
         self.compiler.indent_level -= 1
         code += f'{self.compiler.indent()}}}\n'

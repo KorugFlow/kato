@@ -7,6 +7,7 @@ class CCompiler:
         self.indent_level = 0
         self.variables = {}
         self.stdlib_imports = stdlib_imports or set()
+        self.uses_conversion = False
         
         self.expr_codegen = ExpressionCodegen(self)
         self.stmt_codegen = StatementCodegen(self, self.expr_codegen)

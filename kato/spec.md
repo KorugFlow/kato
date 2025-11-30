@@ -283,6 +283,53 @@ x--;  // x = 5
 
 Однострочные комментарии:
 ```
+var int x = 20;
+```
+
+## Конвертация типов
+
+Kato поддерживает конвертацию переменных между типами с помощью оператора `convert`:
+
+```
+convert *переменная* > тип;
+```
+
+**Правила конвертации:**
+
+**String в Int/Float:**
+- Если строка содержит число (например `"20"`), она конвертируется успешно
+- Если строка содержит текст (например `"hello"`), выводится ошибка
+- Пустая строка `""` также вызывает ошибку
+
+**String в Char:**
+- Если строка длиннее 1 символа, она обрезается до первого символа
+- Пример: `"hello"` → `"h"`
+
+**Int/Float в String:**
+- Числа конвертируются в строковое представление
+
+**Любой тип в String:**
+- Всегда успешно
+
+Пример:
+```
+func main() {
+    var string num_str = "42";
+    convert *num_str* > int;
+    print("Number: *num_str*\n");
+    
+    var string text = "hello";
+    convert *text* > char;
+    print("First char: *text*\n");
+    
+    return 0;
+}
+```
+
+## Комментарии
+
+Однострочные комментарии:
+```
 // это комментарий
 var int x = 20; // комментарий после кода
 ```
@@ -767,6 +814,53 @@ Example:
 var int x = 5;
 x++;  // x = 6
 x--;  // x = 5
+```
+
+## Comments
+
+Single-line comments:
+```
+var int x = 20;
+```
+
+## Type Conversion
+
+Kato supports type conversion between variables using the `convert` operator:
+
+```
+convert *variable* > type;
+```
+
+**Conversion Rules:**
+
+**String to Int/Float:**
+- If the string contains a number (e.g., `"20"`), it converts successfully
+- If the string contains text (e.g., `"hello"`), an error is displayed
+- Empty string `""` also causes an error
+
+**String to Char:**
+- If the string is longer than 1 character, it is truncated to the first character
+- Example: `"hello"` → `"h"`
+
+**Int/Float to String:**
+- Numbers are converted to their string representation
+
+**Any type to String:**
+- Always successful
+
+Example:
+```
+func main() {
+    var string num_str = "42";
+    convert *num_str* > int;
+    print("Number: *num_str*\n");
+    
+    var string text = "hello";
+    convert *text* > char;
+    print("First char: *text*\n");
+    
+    return 0;
+}
 ```
 
 ## Comments

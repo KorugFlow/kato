@@ -2,7 +2,8 @@ from .ast.statements import (
     PrintStatement, ReturnStatement, VarDeclaration,
     CallStatement, IfStatement, Assignment,
     WhileStatement, IncrementStatement, DecrementStatement,
-    ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause
+    ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause,
+    ConvertStatement
 )
 from .errors import KatoSyntaxError
 
@@ -31,6 +32,8 @@ class StatementParser:
             return self.parse_while_statement()
         elif token.type == "SWITCH":
             return self.parse_switch_statement()
+        elif token.type == "CONVERT":
+            return self.parse_convert_statement()
         elif token.type == "IDENTIFIER":
             next_token = self.parser.peek_token()
             if next_token and next_token.type == "PLUS_PLUS":
@@ -433,3 +436,24 @@ class StatementParser:
         self.parser.expect("RBRACE")
         
         return SwitchStatement(expression, cases, default_body)
+    
+    def parse_convert_statement(self):
+        self.parser.expect("CONVERT")
+        
+        expression = self.expr_parser.parse_primary()
+        
+        self.parser.expect("GREATER")
+        
+        type_token = self.parser.current_token()
+        if type_token.type not in ["INT", "FLOAT", "CHAR", "STRING_TYPE"]:
+            raise KatoSyntaxError(
+                f"Expected type (int, float, char, string), got '{type_token.value}'",
+                type_token.line, type_token.column,
+                self.parser.source_code
+            )
+        target_type = type_token.value
+        self.parser.advance()
+        
+        self.parser.expect("SEMICOLON")
+        
+        return ConvertStatement(expression, target_type)
