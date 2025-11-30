@@ -108,18 +108,15 @@ class StatementConverter:
         return None
     
     def convert_scanf(self, scanf_call):
-        """Convert scanf to inpt assignment"""
         from parser.ast import StringLiteral
         from ..ast import CIdentifier, CString
         
         if len(scanf_call.arguments) < 2:
             return None
         
-        # Get variable name from &variable
         var_arg = scanf_call.arguments[1]
         var_name = None
         
-        # Handle &variable or variable
         if isinstance(var_arg, CIdentifier):
             var_name = var_arg.name
             if var_name.startswith('&'):
@@ -132,16 +129,12 @@ class StatementConverter:
         if not var_name:
             return None
         
-        # Use last printf output as prompt if available, otherwise empty string
         prompt = StringLiteral("")
         if self.last_printf_output and len(self.last_printf_output) > 0:
-            # Get the last printf output as prompt
             last_val = self.last_printf_output[0] if isinstance(self.last_printf_output, list) else self.last_printf_output
             if isinstance(last_val, StringLiteral):
                 prompt = last_val
         
-        # Create inpt call
         inpt_call = InptCall(prompt)
         
-        # Return assignment: var = inpt(prompt)
         return Assignment(var_name, inpt_call)

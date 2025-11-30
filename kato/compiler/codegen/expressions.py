@@ -44,7 +44,15 @@ class ExpressionCodegen:
             else:
                 return f"(printf({prompt}), 0)"
         elif isinstance(expr, FunctionCall):
-            args = ", ".join([self.compile_expr(arg) for arg in expr.arguments])
-            return f"{expr.name}({args})"
+            if expr.name == "random":
+                if len(expr.arguments) == 2:
+                    min_val = self.compile_expr(expr.arguments[0])
+                    max_val = self.compile_expr(expr.arguments[1])
+                    return f"({min_val} + rand() % (({max_val}) - ({min_val}) + 1))"
+                else:
+                    return "0"
+            else:
+                args = ", ".join([self.compile_expr(arg) for arg in expr.arguments])
+                return f"{expr.name}({args})"
         else:
             return "0"

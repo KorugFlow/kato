@@ -24,7 +24,8 @@ class CCompiler:
         
         c_code = "#include <stdio.h>\n"
         c_code += "#include <string.h>\n"
-        c_code += "#include <stdlib.h>\n\n"
+        c_code += "#include <stdlib.h>\n"
+        c_code += "#include <time.h>\n\n"
         
         if "filesystem" in self.stdlib_imports:
             from .std.filesystem import get_filesystem_functions

@@ -91,6 +91,45 @@ var string s = inpt("enter text");
 
 **ВАЖНО:** inpt можно использовать только при объявлении или изменении переменных!
 
+## Функция random
+
+Функция random возвращает случайное целое число в заданном диапазоне (включительно):
+
+```
+var int a = random(min, max);
+```
+
+Параметры:
+- `min` - минимальное значение (включительно)
+- `max` - максимальное значение (включительно)
+
+Возвращает: `int` - случайное число от min до max
+
+Пример:
+```kato
+func main() {
+    var int dice = random(1, 6);
+    print("Dice rolled: *dice*\n");
+    
+    var int randomAge = random(18, 65);
+    print("Random age: *randomAge*\n");
+    
+    var int coinFlip = random(0, 1);
+    if coinFlip == 0 {
+        print("Heads\n");
+    } else {
+        print("Tails\n");
+    }
+    
+    return 0;
+}
+```
+
+**ВАЖНО:** 
+- Функция требует ровно 2 аргумента (min, max)
+- Оба аргумента должны быть целыми числами
+- Генератор случайных чисел автоматически инициализируется в функции main()
+
 ## Условия
 
 Kato поддерживает условные операторы:
@@ -623,6 +662,45 @@ var string s = inpt("enter text");
 ```
 
 **IMPORTANT:** inpt can only be used when declaring or assigning variables!
+
+## random Function
+
+The random function returns a random integer within a specified range (inclusive):
+
+```
+var int a = random(min, max);
+```
+
+Parameters:
+- `min` - minimum value (inclusive)
+- `max` - maximum value (inclusive)
+
+Returns: `int` - random number from min to max
+
+Example:
+```kato
+func main() {
+    var int dice = random(1, 6);
+    print("Dice rolled: *dice*\n");
+    
+    var int randomAge = random(18, 65);
+    print("Random age: *randomAge*\n");
+    
+    var int coinFlip = random(0, 1);
+    if coinFlip == 0 {
+        print("Heads\n");
+    } else {
+        print("Tails\n");
+    }
+    
+    return 0;
+}
+```
+
+**IMPORTANT:** 
+- The function requires exactly 2 arguments (min, max)
+- Both arguments must be integers
+- The random number generator is automatically initialized in the main() function
 
 ## Conditionals
 

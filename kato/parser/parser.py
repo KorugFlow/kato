@@ -10,7 +10,7 @@ class Parser:
         self.pos = 0
         self.source_code = source_code
         self.defined_functions = set()
-        self.builtin_functions = {"print"}
+        self.builtin_functions = {"print", "random"}
         self.defined_variables = set()
         
         self.expr_parser = ExpressionParser(self)

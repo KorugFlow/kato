@@ -90,6 +90,15 @@ class ExpressionParser:
                     if self.parser.current_token() and self.parser.current_token().type == "COMMA":
                         self.parser.advance()
                 self.parser.expect("RPAREN")
+                
+                if name == "random":
+                    if len(arguments) != 2:
+                        raise KatoSyntaxError(
+                            f"Function 'random' requires exactly 2 arguments (min, max), but got {len(arguments)}",
+                            token.line, token.column,
+                            self.parser.source_code
+                        )
+                
                 return FunctionCall(name, arguments)
             elif self.parser.current_token() and self.parser.current_token().type == "LBRACKET":
                 self.parser.advance()

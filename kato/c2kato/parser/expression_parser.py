@@ -70,11 +70,9 @@ class CExpressionParser:
     def parse_primary(self):
         token = self.parser.current_token()
         
-        # Handle unary operators like & (address-of)
         if token.type == "AMPERSAND":
             self.parser.advance()
             expr = self.parse_primary()
-            # For scanf, we just return the identifier with & prefix
             if isinstance(expr, CIdentifier):
                 return CIdentifier(f"&{expr.name}")
             return expr

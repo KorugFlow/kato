@@ -97,6 +97,9 @@ class FunctionCodegen:
         
         self.compiler.indent_level += 1
         
+        if function.name == "main":
+            c_code += self.compiler.indent() + "srand(time(NULL));\n"
+        
         for statement in function.body:
             c_code += self.stmt_codegen.compile_statement(statement)
         
