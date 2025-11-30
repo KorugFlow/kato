@@ -26,7 +26,10 @@ class StatementConverter:
                 converted_args = [self.expr_converter.convert_expression(arg) for arg in c_stmt.arguments]
                 print_values = self.printf_converter.convert_printf_to_print(converted_args)
                 return PrintStatement(print_values)
-            return None
+            else:
+                from parser.ast import CallStatement
+                arguments = [self.expr_converter.convert_expression(arg) for arg in c_stmt.arguments] if c_stmt.arguments else []
+                return CallStatement(c_stmt.name, arguments)
         
         if isinstance(c_stmt, CVarDeclaration):
             kato_type = map_c_type_to_kato(c_stmt.var_type)

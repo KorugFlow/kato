@@ -44,7 +44,9 @@ class CParser:
             if token.type == "HASH":
                 self.skip_preprocessor()
             elif token.type in ["INT_TYPE", "FLOAT_TYPE", "CHAR_TYPE", "VOID_TYPE"]:
-                declarations.append(self.parse_function_or_declaration())
+                result = self.parse_function_or_declaration()
+                if result is not None:
+                    declarations.append(result)
             else:
                 self.advance()
         
@@ -62,11 +64,16 @@ class CParser:
         return_type = return_type_token.value
         self.advance()
         
+        if self.current_token() and self.current_token().type == "ASTERISK":
+            return_type += "*"
+            self.advance()
+        
         name_token = self.expect("IDENTIFIER")
         name = name_token.value
         
         if self.current_token() and self.current_token().type == "LPAREN":
-            return self.parse_function(return_type, name)
+            result = self.parse_function(return_type, name)
+            return result
         else:
             raise C2KatoError("Variable declarations not yet supported", name_token.line, name_token.column)
     
@@ -79,6 +86,10 @@ class CParser:
                 param_type = self.current_token().value
                 self.advance()
                 
+                if self.current_token() and self.current_token().type == "ASTERISK":
+                    param_type += "*"
+                    self.advance()
+                
                 if self.current_token() and self.current_token().type == "IDENTIFIER":
                     param_name = self.current_token().value
                     self.advance()
@@ -88,6 +99,11 @@ class CParser:
                 self.advance()
         
         self.expect("RPAREN")
+        
+        if self.current_token() and self.current_token().type == "SEMICOLON":
+            self.advance()
+            return None
+        
         self.expect("LBRACE")
         
         body = []

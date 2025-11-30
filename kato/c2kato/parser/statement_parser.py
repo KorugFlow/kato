@@ -1,7 +1,7 @@
 from ..ast import (
     CVarDeclaration, CArrayDeclaration, CAssignment,
     CIfStatement, CWhileStatement, CForStatement,
-    CReturnStatement, CExpressionStatement
+    CReturnStatement, CExpressionStatement, CFunctionCall
 )
 from ..errors import C2KatoError
 
@@ -52,6 +52,10 @@ class CStatementParser:
     def parse_declaration(self):
         var_type = self.parser.current_token().value
         self.parser.advance()
+        
+        if self.parser.current_token() and self.parser.current_token().type == "ASTERISK":
+            var_type += "*"
+            self.parser.advance()
         
         name_token = self.parser.expect("IDENTIFIER")
         name = name_token.value
@@ -203,14 +207,19 @@ class CStatementParser:
                 return CExpressionStatement(f"{name}{op}")
         elif self.parser.current_token() and self.parser.current_token().type == "LPAREN":
             self.parser.advance()
+            
+            arguments = []
             while self.parser.current_token() and self.parser.current_token().type != "RPAREN":
-                self.parser.advance()
+                arguments.append(self.expr_parser.parse_expression())
+                if self.parser.current_token() and self.parser.current_token().type == "COMMA":
+                    self.parser.advance()
+            
             self.parser.expect("RPAREN")
             
             if self.parser.current_token() and self.parser.current_token().type == "SEMICOLON":
                 self.parser.expect("SEMICOLON")
             
-            return CExpressionStatement(f"{name}()")
+            return CFunctionCall(name, arguments)
         else:
             if self.parser.current_token() and self.parser.current_token().type == "SEMICOLON":
                 self.parser.expect("SEMICOLON")

@@ -1,6 +1,6 @@
 from parser.ast import (
     Identifier, NumberLiteral, FloatLiteral, CharLiteral,
-    StringLiteral, BinaryOp, ArrayAccess
+    StringLiteral, BinaryOp, ArrayAccess, FunctionCall
 )
 from ..ast import (
     CIdentifier, CNumber, CString, CChar,
@@ -29,6 +29,7 @@ class ExpressionConverter:
         elif isinstance(c_expr, CFunctionCall):
             if c_expr.name == "printf":
                 return StringLiteral("printf_call")
-            return Identifier(f"call_{c_expr.name}")
+            arguments = [self.convert_expression(arg) for arg in c_expr.arguments] if c_expr.arguments else []
+            return FunctionCall(c_expr.name, arguments)
         else:
             return Identifier("unknown")

@@ -2,6 +2,7 @@ C_TO_KATO_TYPES = {
     "int": "int",
     "float": "float",
     "char": "char",
+    "char*": "string",
     "void": "int",
 }
 

@@ -127,9 +127,15 @@ class KatoGenerator:
             values_str = " ".join(result_parts)
             return f"{self.indent()}print({values_str});\n"
         
+        elif isinstance(stmt, CallStatement):
+            args_str = ", ".join([self.generate_expression(arg) for arg in stmt.arguments]) if stmt.arguments else ""
+            return f"{self.indent()}call {stmt.func_name}({args_str});\n"
+        
         return ""
     
     def generate_expression(self, expr):
+        from parser.ast import FunctionCall
+        
         if isinstance(expr, NumberLiteral):
             return str(expr.value)
         elif isinstance(expr, FloatLiteral):
@@ -140,6 +146,9 @@ class KatoGenerator:
             return f"'{expr.value}'"
         elif isinstance(expr, Identifier):
             return expr.name
+        elif isinstance(expr, FunctionCall):
+            args_str = ", ".join([self.generate_expression(arg) for arg in expr.arguments]) if expr.arguments else ""
+            return f"{expr.name}({args_str})"
         elif isinstance(expr, BinaryOp):
             left = self.generate_expression(expr.left)
             right = self.generate_expression(expr.right)
