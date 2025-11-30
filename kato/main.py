@@ -194,6 +194,9 @@ def main():
             print_ast(optimized_ast)
             print()
         
+        
+        preprocessor.check_unused_imports(optimized_ast, imported_functions, source_code)
+        
         compiler = CCompiler(optimized_ast, stdlib_imports=preprocessor.stdlib_imports)
         c_code = compiler.compile()
         

@@ -60,6 +60,9 @@ class Lexer:
         
         string_value = ""
         while self.current_char() and self.current_char() != quote_char:
+            if self.current_char() == '\n':
+                quote_type = "single quote (')" if quote_char == "'" else "double quote (\")"
+                raise SyntaxError(f"Unclosed {quote_type} at line {start_line}, column {start_column}")
             if self.current_char() == '\\':
                 self.advance()
                 escape_char = self.current_char()
@@ -83,7 +86,8 @@ class Lexer:
         if self.current_char() == quote_char:
             self.advance()
         else:
-            raise SyntaxError(f"Come on, seriously?")
+            quote_type = "single quote (')" if quote_char == "'" else "double quote (\")"
+            raise SyntaxError(f"Unclosed {quote_type} at line {start_line}, column {start_column}")
         
         if quote_char == "'":
             return Token("CHAR", string_value, start_line, start_column)

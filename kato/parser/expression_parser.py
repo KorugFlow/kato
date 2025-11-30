@@ -75,7 +75,18 @@ class ExpressionParser:
                 self.parser.advance()
                 arguments = []
                 while self.parser.current_token() and self.parser.current_token().type != "RPAREN":
-                    arguments.append(self.parse_expression())
+                    arg_token = self.parser.current_token()
+                    arg = self.parse_expression()
+                    
+                    if isinstance(arg, Identifier):
+                        if arg.name not in self.parser.defined_variables:
+                            raise KatoSyntaxError(
+                                f"Undefined variable '{arg.name}'. If you meant a string, use double quotes: \"{arg.name}\". If you meant a char, use single quotes: '{arg.name}'",
+                                arg_token.line, arg_token.column,
+                                self.parser.source_code
+                            )
+                    
+                    arguments.append(arg)
                     if self.parser.current_token() and self.parser.current_token().type == "COMMA":
                         self.parser.advance()
                 self.parser.expect("RPAREN")

@@ -16,6 +16,11 @@ class CCompiler:
         return "    " * self.indent_level
     
     def compile(self):
+        for function in self.ast.functions:
+            if function.params:
+                function.param_types = self.func_codegen.infer_param_types(function, self.ast)
+            function.return_type = self.func_codegen.infer_return_type(function)
+        
         c_code = "#include <stdio.h>\n"
         c_code += "#include <string.h>\n"
         c_code += "#include <stdlib.h>\n\n"

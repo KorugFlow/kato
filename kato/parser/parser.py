@@ -109,11 +109,26 @@ class Parser:
         for param in params:
             self.defined_variables.add(param)
         
-        self.expect("LBRACE")
+        lbrace_token = self.expect("LBRACE")
         
         body = []
         while self.current_token() and self.current_token().type != "RBRACE":
-            body.append(self.stmt_parser.parse_statement())
+            if self.current_token().type == "EOF":
+                raise KatoSyntaxError(
+                    f"Function '{name}' is not closed. Missing closing brace '}}' for function that starts here",
+                    lbrace_token.line, lbrace_token.column,
+                    self.source_code
+                )
+            stmt = self.stmt_parser.parse_statement()
+            if stmt is not None:
+                body.append(stmt)
+        
+        if self.current_token() is None or self.current_token().type == "EOF":
+            raise KatoSyntaxError(
+                f"Function '{name}' is not closed. Missing closing brace '}}' for function that starts here",
+                lbrace_token.line, lbrace_token.column,
+                self.source_code
+            )
         
         self.expect("RBRACE")
         

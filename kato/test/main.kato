@@ -1,8 +1,19 @@
 import filesystem
 
+func add(a, b) {
+    return *a* + *b*;
+}
+
+func save_var_allias(text) {
+    return text;
+}
+
 func main() {
 
-    var string content = file_read("hello.txt");
-    print("*content*");
+    call add(8, 2);
+    var string b = save_var_allias("hello");
+    print("*b*");
+
 
 }
+

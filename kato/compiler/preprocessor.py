@@ -1,6 +1,11 @@
 import os
 from pathlib import Path
-from parser.errors import KatoSyntaxError
+from parser.errors import KatoSyntaxError, KatoWarning
+from parser.ast import CallStatement, IfStatement, WhileStatement, PrintStatement, ReturnStatement, VarDeclaration, Assignment, BinaryOp, InptCall, FunctionCall
+
+STDLIBS = {
+    "filesystem": "compiler.std.filesystem"
+}
 
 
 class Preprocessor:
@@ -14,9 +19,20 @@ class Preprocessor:
     
     def process(self, source_code):
         imports = self.extract_imports(source_code)
+        self.import_lines = {}
+        
+        lines = source_code.split('\n')
+        for line_num, line in enumerate(lines, 1):
+            stripped = line.strip()
+            if stripped.startswith('import '):
+                if stripped.endswith(';'):
+                    import_path = stripped[7:-1].strip()
+                else:
+                    import_path = stripped[7:].strip()
+                self.import_lines[import_path] = line_num
         
         for import_path in imports:
-            if import_path in ["filesystem"]:
+            if import_path in STDLIBS:
                 self.stdlib_imports.add(import_path)
             else:
                 self.process_import(import_path)
@@ -149,3 +165,86 @@ class Preprocessor:
                 f"Function '{func_name}' not found in {export_file}",
                 1, 1
             )
+    
+    def check_unused_imports(self, ast, imported_functions, source_code):
+        used_stdlib = set()
+        used_functions = set()
+        
+        stdlib_functions = {}
+        for stdlib_name in self.stdlib_imports:
+            if stdlib_name == "filesystem":
+                from compiler.std.filesystem import FILESYSTEM_FUNCTIONS
+                stdlib_functions[stdlib_name] = FILESYSTEM_FUNCTIONS
+        
+        def check_expr(expr):
+            if expr is None:
+                return
+            if isinstance(expr, list):
+                for item in expr:
+                    check_expr(item)
+            elif isinstance(expr, BinaryOp):
+                check_expr(expr.left)
+                check_expr(expr.right)
+            elif isinstance(expr, InptCall):
+                check_expr(expr.prompt)
+            elif isinstance(expr, FunctionCall):
+                func_name = expr.name
+                for stdlib_name, funcs in stdlib_functions.items():
+                    if func_name in funcs:
+                        used_stdlib.add(stdlib_name)
+                if func_name in imported_functions:
+                    used_functions.add(func_name)
+                if expr.arguments:
+                    for arg in expr.arguments:
+                        check_expr(arg)
+        
+        def check_stmt(statement):
+            if isinstance(statement, CallStatement):
+                func_name = statement.func_name
+                for stdlib_name, funcs in stdlib_functions.items():
+                    if func_name in funcs:
+                        used_stdlib.add(stdlib_name)
+                if func_name in imported_functions:
+                    used_functions.add(func_name)
+                if statement.arguments:
+                    for arg in statement.arguments:
+                        check_expr(arg)
+            elif isinstance(statement, IfStatement):
+                check_expr(statement.condition)
+                for stmt in statement.if_body:
+                    check_stmt(stmt)
+                for elif_condition, elif_body in statement.elif_parts:
+                    check_expr(elif_condition)
+                    for stmt in elif_body:
+                        check_stmt(stmt)
+                if statement.else_body:
+                    for stmt in statement.else_body:
+                        check_stmt(stmt)
+            elif isinstance(statement, WhileStatement):
+                check_expr(statement.condition)
+                for stmt in statement.body:
+                    check_stmt(stmt)
+            elif isinstance(statement, PrintStatement):
+                check_expr(statement.value)
+            elif isinstance(statement, ReturnStatement):
+                check_expr(statement.value)
+            elif isinstance(statement, VarDeclaration):
+                check_expr(statement.value)
+            elif isinstance(statement, Assignment):
+                check_expr(statement.value)
+        
+        for function in ast.functions:
+            for statement in function.body:
+                check_stmt(statement)
+        
+        for stdlib_name in self.stdlib_imports:
+            if stdlib_name not in used_stdlib:
+                line = self.import_lines.get(stdlib_name, 1)
+                warning = KatoWarning(f"Unused import: '{stdlib_name}'", line, 1, source_code)
+                print(warning.format_warning())
+        
+        for func_name in imported_functions.keys():
+            if func_name not in used_functions:
+                line = 1
+                warning = KatoWarning(f"Unused imported function: '{func_name}'", line, 1, source_code)
+                print(warning.format_warning())

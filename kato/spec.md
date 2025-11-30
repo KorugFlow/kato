@@ -171,6 +171,12 @@ call name(arg1, arg2);
 
 Аргументы функций могут быть только типов: `int`, `float`, `string`, `char`.
 
+**ВАЖНО:** При передаче строковых или символьных литералов в функции:
+- Используйте двойные кавычки для строк: `"text"`
+- Используйте одинарные кавычки для символов: `'a'`
+- Если передаете переменную, она должна быть объявлена
+
+
 Пример:
 ```
 func printF(text) {
@@ -574,6 +580,13 @@ call name(arg1, arg2);
 
 Function arguments can only be of types: `int`, `float`, `string`, `char`.
 
+
+
+**IMPORTANT:** When passing string or character literals to functions:
+- Use double quotes for strings: `"text"`
+- Use single quotes for characters: `'a'`
+- If passing a variable, it must be declared first
+
 Example:
 ```
 func printF(text) {
@@ -582,6 +595,9 @@ func printF(text) {
 
 func main() {
     call printF("hello world\n");
+    
+    var string msg = "test";
+    call printF(msg);
 }
 ```
 

@@ -36,6 +36,8 @@ class StatementCodegen:
             return self.compile_array_declaration(statement)
         elif isinstance(statement, ArrayAssignment):
             return self.compile_array_assignment(statement)
+        else:
+            raise ValueError(f"Unknown statement type: {type(statement).__name__}")
     
     def compile_print(self, statement):
         values = statement.value if isinstance(statement.value, list) else [statement.value]
@@ -133,6 +135,11 @@ class StatementCodegen:
             return f'{self.compiler.indent()}return 0;\n'
         elif isinstance(value, Identifier):
             return f'{self.compiler.indent()}return {value.name};\n'
+        elif isinstance(value, BinaryOp):
+            return f'{self.compiler.indent()}return {self.expr_codegen.compile_expr(value)};\n'
+        else:
+            
+            return f'{self.compiler.indent()}return {self.expr_codegen.compile_expr(value)};\n'
     
     def compile_var_declaration(self, statement):
         var_type = statement.var_type
