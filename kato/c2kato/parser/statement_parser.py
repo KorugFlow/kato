@@ -1,7 +1,8 @@
 from ..ast import (
     CVarDeclaration, CArrayDeclaration, CAssignment,
     CIfStatement, CWhileStatement, CForStatement,
-    CReturnStatement, CExpressionStatement, CFunctionCall
+    CReturnStatement, CExpressionStatement, CFunctionCall,
+    CSwitchStatement, CCaseClause
 )
 from ..errors import C2KatoError
 
@@ -22,10 +23,14 @@ class CStatementParser:
             return self.parse_while_statement()
         elif token.type == "FOR":
             return self.parse_for_statement()
+        elif token.type == "SWITCH":
+            return self.parse_switch_statement()
         elif token.type == "RETURN":
             return self.parse_return_statement()
         elif token.type == "PRINTF":
             return self.parse_printf_statement()
+        elif token.type == "SCANF":
+            return self.parse_scanf_statement()
         elif token.type == "IDENTIFIER":
             return self.parse_assignment_or_expression()
         else:
@@ -48,6 +53,23 @@ class CStatementParser:
         
         from ..ast import CFunctionCall
         return CFunctionCall("printf", arguments)
+    
+    def parse_scanf_statement(self):
+        self.parser.expect("SCANF")
+        self.parser.expect("LPAREN")
+        
+        arguments = []
+        while self.parser.current_token() and self.parser.current_token().type != "RPAREN":
+            arguments.append(self.expr_parser.parse_expression())
+            
+            if self.parser.current_token() and self.parser.current_token().type == "COMMA":
+                self.parser.advance()
+        
+        self.parser.expect("RPAREN")
+        self.parser.expect("SEMICOLON")
+        
+        from ..ast import CFunctionCall
+        return CFunctionCall("scanf", arguments)
     
     def parse_declaration(self):
         var_type = self.parser.current_token().value
@@ -224,3 +246,56 @@ class CStatementParser:
             if self.parser.current_token() and self.parser.current_token().type == "SEMICOLON":
                 self.parser.expect("SEMICOLON")
             return CExpressionStatement(name)
+    
+    def parse_switch_statement(self):
+        self.parser.expect("SWITCH")
+        self.parser.expect("LPAREN")
+        
+        expression = self.expr_parser.parse_expression()
+        
+        self.parser.expect("RPAREN")
+        self.parser.expect("LBRACE")
+        
+        cases = []
+        default_body = None
+        
+        while self.parser.current_token() and self.parser.current_token().type != "RBRACE":
+            if self.parser.current_token().type == "CASE":
+                self.parser.advance()
+                
+                case_value = self.expr_parser.parse_expression()
+                self.parser.expect("COLON")
+                
+                case_body = []
+                while self.parser.current_token() and self.parser.current_token().type not in ["CASE", "DEFAULT", "RBRACE"]:
+                    if self.parser.current_token().type == "BREAK":
+                        self.parser.advance()
+                        self.parser.expect("SEMICOLON")
+                        break
+                    else:
+                        stmt = self.parse_statement()
+                        if stmt:
+                            case_body.append(stmt)
+                
+                cases.append(CCaseClause(case_value, case_body))
+                
+            elif self.parser.current_token().type == "DEFAULT":
+                self.parser.advance()
+                self.parser.expect("COLON")
+                
+                default_body = []
+                while self.parser.current_token() and self.parser.current_token().type != "RBRACE":
+                    if self.parser.current_token().type == "BREAK":
+                        self.parser.advance()
+                        self.parser.expect("SEMICOLON")
+                        break
+                    else:
+                        stmt = self.parse_statement()
+                        if stmt:
+                            default_body.append(stmt)
+            else:
+                self.parser.advance()
+        
+        self.parser.expect("RBRACE")
+        
+        return CSwitchStatement(expression, cases, default_body)

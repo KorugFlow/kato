@@ -78,3 +78,16 @@ class ArrayAssignment(ASTNode):
         self.name = name
         self.index = index
         self.value = value
+
+
+class SwitchStatement(ASTNode):
+    def __init__(self, expression, cases, default_body):
+        self.expression = expression
+        self.cases = cases
+        self.default_body = default_body
+
+
+class CaseClause(ASTNode):
+    def __init__(self, value, body):
+        self.value = value
+        self.body = body

@@ -155,6 +155,9 @@ class CLexer:
             elif char == ';':
                 self.tokens.append(CToken("SEMICOLON", char, start_line, start_column))
                 self.advance()
+            elif char == ':':
+                self.tokens.append(CToken("COLON", char, start_line, start_column))
+                self.advance()
             elif char == ',':
                 self.tokens.append(CToken("COMMA", char, start_line, start_column))
                 self.advance()

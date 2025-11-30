@@ -1,12 +1,14 @@
 from parser.ast import (
     VarDeclaration, ArrayDeclaration, Assignment,
     IfStatement, WhileStatement, ReturnStatement,
-    IncrementStatement, DecrementStatement, PrintStatement
+    IncrementStatement, DecrementStatement, PrintStatement,
+    SwitchStatement, CaseClause, InptCall
 )
 from ..ast import (
     CVarDeclaration, CArrayDeclaration, CAssignment,
     CIfStatement, CWhileStatement, CForStatement,
-    CReturnStatement, CExpressionStatement, CFunctionCall
+    CReturnStatement, CExpressionStatement, CFunctionCall,
+    CSwitchStatement, CCaseClause
 )
 from .type_mapper import map_c_type_to_kato
 from .printf_converter import PrintfConverter
@@ -16,6 +18,7 @@ class StatementConverter:
     def __init__(self, expr_converter):
         self.expr_converter = expr_converter
         self.printf_converter = PrintfConverter()
+        self.last_printf_output = None
     
     def convert_statement(self, c_stmt):
         if c_stmt is None:
@@ -25,7 +28,10 @@ class StatementConverter:
             if c_stmt.name == "printf":
                 converted_args = [self.expr_converter.convert_expression(arg) for arg in c_stmt.arguments]
                 print_values = self.printf_converter.convert_printf_to_print(converted_args)
+                self.last_printf_output = print_values
                 return PrintStatement(print_values)
+            elif c_stmt.name == "scanf":
+                return self.convert_scanf(c_stmt)
             else:
                 from parser.ast import CallStatement
                 arguments = [self.expr_converter.convert_expression(arg) for arg in c_stmt.arguments] if c_stmt.arguments else []
@@ -74,6 +80,20 @@ class StatementConverter:
             value = self.expr_converter.convert_expression(c_stmt.value) if c_stmt.value else None
             return ReturnStatement(value)
         
+        elif isinstance(c_stmt, CSwitchStatement):
+            expression = self.expr_converter.convert_expression(c_stmt.expression)
+            kato_cases = []
+            for c_case in c_stmt.cases:
+                case_value = self.expr_converter.convert_expression(c_case.value)
+                case_body = [self.convert_statement(s) for s in c_case.body if s]
+                kato_cases.append(CaseClause(case_value, case_body))
+            
+            default_body = None
+            if c_stmt.default_body:
+                default_body = [self.convert_statement(s) for s in c_stmt.default_body if s]
+            
+            return SwitchStatement(expression, kato_cases, default_body)
+        
         elif isinstance(c_stmt, CExpressionStatement):
             if isinstance(c_stmt.expression, str):
                 if "++" in c_stmt.expression:
@@ -86,3 +106,42 @@ class StatementConverter:
                     return None
         
         return None
+    
+    def convert_scanf(self, scanf_call):
+        """Convert scanf to inpt assignment"""
+        from parser.ast import StringLiteral
+        from ..ast import CIdentifier, CString
+        
+        if len(scanf_call.arguments) < 2:
+            return None
+        
+        # Get variable name from &variable
+        var_arg = scanf_call.arguments[1]
+        var_name = None
+        
+        # Handle &variable or variable
+        if isinstance(var_arg, CIdentifier):
+            var_name = var_arg.name
+            if var_name.startswith('&'):
+                var_name = var_name[1:]
+        elif isinstance(var_arg, str):
+            var_name = var_arg
+            if var_name.startswith('&'):
+                var_name = var_name[1:]
+        
+        if not var_name:
+            return None
+        
+        # Use last printf output as prompt if available, otherwise empty string
+        prompt = StringLiteral("")
+        if self.last_printf_output and len(self.last_printf_output) > 0:
+            # Get the last printf output as prompt
+            last_val = self.last_printf_output[0] if isinstance(self.last_printf_output, list) else self.last_printf_output
+            if isinstance(last_val, StringLiteral):
+                prompt = last_val
+        
+        # Create inpt call
+        inpt_call = InptCall(prompt)
+        
+        # Return assignment: var = inpt(prompt)
+        return Assignment(var_name, inpt_call)

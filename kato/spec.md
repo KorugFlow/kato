@@ -200,6 +200,72 @@ while (i < 10) {
 }
 ```
 
+## Switch
+
+Kato поддерживает оператор switch для множественного выбора:
+
+```
+switch (переменная) {
+    case значение1
+        // код
+    
+    case значение2
+        // код
+    
+    default {
+        // код по умолчанию
+    }
+}
+```
+
+**Правила:**
+- Switch принимает только переменные (не выражения)
+- Case может принимать:
+  - Символьные литералы: `case 'a'`
+  - Строковые литералы: `case "hello"`
+  - Числовые литералы: `case 42`
+  - Переменные: `case *var_name*`
+- Каждый case автоматически завершается (нет необходимости в break)
+- default блок опционален и должен быть в фигурных скобках
+
+Пример:
+```
+var char op = '+';
+switch (op) {
+    case '+'
+        print("Addition\n");
+    
+    case '-'
+        print("Subtraction\n");
+    
+    case '*'
+        print("Multiplication\n");
+    
+    default {
+        print("Unknown operation\n");
+    }
+}
+```
+
+Пример с числами:
+```
+var int day = 3;
+switch (day) {
+    case 1
+        print("Monday\n");
+    
+    case 2
+        print("Tuesday\n");
+    
+    case 3
+        print("Wednesday\n");
+    
+    default {
+        print("Other day\n");
+    }
+}
+```
+
 ## Инкремент и декремент
 
 Увеличение и уменьшение переменной на 1:
@@ -230,6 +296,7 @@ var int x = 20; // комментарий после кода
 - Вызов функции обязательно должен иметь скобки `()`, даже если аргументов нет
 - Весь код должен быть внутри функций
 - inpt можно использовать только при объявлении или изменении переменных
+- **Переменные уникальны на весь файл** - нельзя объявлять переменную с одинаковым именем дважды, даже в разных блоках if/elif/else или циклах
 
 ## Импорт функций
 
@@ -363,7 +430,9 @@ python kato/main.py input.c -c2kato -o output
 c2kato конвертирует базовый C код в синтаксис Kato:
 - `int`, `float`, `char` типы → Kato типы
 - `printf` → `print` с автоматической конвертацией `%d`, `%s` в `*var*`
+- `scanf` → `inpt` с автоматическим определением типа
 - `for` циклы → `while` циклы
+- `switch` выражения → Kato switch выражения
 - Массивы C → массивы Kato
 - Функции C → функции Kato
 
@@ -373,6 +442,11 @@ c2kato конвертирует базовый C код в синтаксис Ka
 int main() {
     int arr[3] = {10, 20, 30};
     printf("Value: %d\n", arr[0]);
+    
+    int num;
+    printf("Enter number: ");
+    scanf("%d", &num);
+    
     return 0;
 }
 ```
@@ -383,6 +457,9 @@ int main() {
 func main() {
     mass int arr = {10, 20, 30};
     print("Value: *arr[0]*\n");
+    
+    var int num = inpt("Enter number: ");
+    
     return 0;
 }
 ```
@@ -613,6 +690,72 @@ while (i < 10) {
 }
 ```
 
+## Switch
+
+Kato supports switch statement for multiple choice:
+
+```
+switch (variable) {
+    case value1
+        // code
+    
+    case value2
+        // code
+    
+    default {
+        // default code
+    }
+}
+```
+
+**Rules:**
+- Switch accepts only variables (not expressions)
+- Case can accept:
+  - Character literals: `case 'a'`
+  - String literals: `case "hello"`
+  - Numeric literals: `case 42`
+  - Variables: `case *var_name*`
+- Each case automatically terminates (no need for break)
+- default block is optional and must be in curly braces
+
+Example:
+```
+var char op = '+';
+switch (op) {
+    case '+'
+        print("Addition\n");
+    
+    case '-'
+        print("Subtraction\n");
+    
+    case '*'
+        print("Multiplication\n");
+    
+    default {
+        print("Unknown operation\n");
+    }
+}
+```
+
+Example with numbers:
+```
+var int day = 3;
+switch (day) {
+    case 1
+        print("Monday\n");
+    
+    case 2
+        print("Tuesday\n");
+    
+    case 3
+        print("Wednesday\n");
+    
+    default {
+        print("Other day\n");
+    }
+}
+```
+
 ## Increment and Decrement
 
 Increase and decrease variable by 1:
@@ -643,6 +786,7 @@ var int x = 20; // comment after code
 - Function calls must have parentheses `()`, even if there are no arguments
 - All code must be inside functions
 - inpt can only be used when declaring or assigning variables
+- **Variables are unique per file** - you cannot declare a variable with the same name twice, even in different if/elif/else blocks or loops
 
 ## Function Import
 
@@ -776,7 +920,9 @@ python kato/main.py input.c -c2kato -o output
 c2kato converts basic C code to Kato syntax:
 - `int`, `float`, `char` types → Kato types
 - `printf` → `print` with automatic conversion of `%d`, `%s` to `*var*`
+- `scanf` → `inpt` with automatic type detection
 - `for` loops → `while` loops
+- `switch` statements → Kato switch statements
 - C arrays → Kato arrays
 - C functions → Kato functions
 
@@ -786,6 +932,11 @@ Example:
 int main() {
     int arr[3] = {10, 20, 30};
     printf("Value: %d\n", arr[0]);
+    
+    int num;
+    printf("Enter number: ");
+    scanf("%d", &num);
+    
     return 0;
 }
 ```
@@ -796,6 +947,9 @@ Converts to:
 func main() {
     mass int arr = {10, 20, 30};
     print("Value: *arr[0]*\n");
+    
+    var int num = inpt("Enter number: ");
+    
     return 0;
 }
 ```

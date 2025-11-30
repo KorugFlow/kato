@@ -64,3 +64,16 @@ class CReturnStatement(CASTNode):
 class CExpressionStatement(CASTNode):
     def __init__(self, expression):
         self.expression = expression
+
+
+class CSwitchStatement(CASTNode):
+    def __init__(self, expression, cases, default_body):
+        self.expression = expression
+        self.cases = cases
+        self.default_body = default_body
+
+
+class CCaseClause(CASTNode):
+    def __init__(self, value, body):
+        self.value = value
+        self.body = body

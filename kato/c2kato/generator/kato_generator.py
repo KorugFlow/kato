@@ -2,7 +2,7 @@ from parser.ast import (
     Program, Function, VarDeclaration, ArrayDeclaration,
     Assignment, IfStatement, WhileStatement,
     ReturnStatement, IncrementStatement, DecrementStatement,
-    PrintStatement, CallStatement,
+    PrintStatement, CallStatement, SwitchStatement, CaseClause,
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
     Identifier, BinaryOp, ArrayAccess
 )
@@ -130,6 +130,33 @@ class KatoGenerator:
         elif isinstance(stmt, CallStatement):
             args_str = ", ".join([self.generate_expression(arg) for arg in stmt.arguments]) if stmt.arguments else ""
             return f"{self.indent()}call {stmt.func_name}({args_str});\n"
+        
+        elif isinstance(stmt, SwitchStatement):
+            expr_str = self.generate_expression(stmt.expression)
+            
+            code = f"{self.indent()}switch ({expr_str}) {{\n"
+            self.indent_level += 1
+            
+            for case in stmt.cases:
+                case_value_str = self.generate_expression(case.value)
+                code += f"{self.indent()}case {case_value_str}\n"
+                
+                self.indent_level += 1
+                for s in case.body:
+                    code += self.generate_statement(s)
+                self.indent_level -= 1
+            
+            if stmt.default_body:
+                code += f"{self.indent()}default {{\n"
+                self.indent_level += 1
+                for s in stmt.default_body:
+                    code += self.generate_statement(s)
+                self.indent_level -= 1
+                code += f"{self.indent()}}}\n"
+            
+            self.indent_level -= 1
+            code += f"{self.indent()}}}\n"
+            return code
         
         return ""
     

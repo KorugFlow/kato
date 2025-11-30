@@ -12,4 +12,8 @@ C_KEYWORDS = {
     "scanf": "SCANF",
     "include": "INCLUDE",
     "define": "DEFINE",
+    "switch": "SWITCH",
+    "case": "CASE",
+    "default": "DEFAULT",
+    "break": "BREAK",
 }

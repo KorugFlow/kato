@@ -2,8 +2,8 @@ from parser.ast import (
     PrintStatement, ReturnStatement, VarDeclaration,
     CallStatement, IfStatement, Assignment,
     WhileStatement, IncrementStatement, DecrementStatement,
-    ArrayDeclaration, ArrayAssignment,
-    StringLiteral, NumberLiteral, FloatLiteral, Identifier, BinaryOp, InptCall, ArrayAccess
+    ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause,
+    StringLiteral, NumberLiteral, FloatLiteral, Identifier, BinaryOp, InptCall, ArrayAccess, CharLiteral
 )
 import re
 
@@ -36,6 +36,8 @@ class StatementCodegen:
             return self.compile_array_declaration(statement)
         elif isinstance(statement, ArrayAssignment):
             return self.compile_array_assignment(statement)
+        elif isinstance(statement, SwitchStatement):
+            return self.compile_switch(statement)
         else:
             raise ValueError(f"Unknown statement type: {type(statement).__name__}")
     
@@ -293,3 +295,32 @@ class StatementCodegen:
         value = self.expr_codegen.compile_expr(statement.value)
         
         return f'{self.compiler.indent()}{array_name}[{index}] = {value};\n'
+    
+    def compile_switch(self, statement):
+        switch_expr = self.expr_codegen.compile_expr(statement.expression)
+        
+        code = f'{self.compiler.indent()}switch ({switch_expr}) {{\n'
+        self.compiler.indent_level += 1
+        
+        for case in statement.cases:
+            case_value = self.expr_codegen.compile_expr(case.value)
+            code += f'{self.compiler.indent()}case {case_value}:\n'
+            
+            self.compiler.indent_level += 1
+            for stmt in case.body:
+                code += self.compile_statement(stmt)
+            code += f'{self.compiler.indent()}break;\n'
+            self.compiler.indent_level -= 1
+        
+        if statement.default_body:
+            code += f'{self.compiler.indent()}default:\n'
+            self.compiler.indent_level += 1
+            for stmt in statement.default_body:
+                code += self.compile_statement(stmt)
+            code += f'{self.compiler.indent()}break;\n'
+            self.compiler.indent_level -= 1
+        
+        self.compiler.indent_level -= 1
+        code += f'{self.compiler.indent()}}}\n'
+        
+        return code

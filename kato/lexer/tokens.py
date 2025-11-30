@@ -16,4 +16,7 @@ class tokens:
         "else": "ELSE",
         "while": "WHILE",
         "import": "IMPORT",
+        "switch": "SWITCH",
+        "case": "CASE",
+        "default": "DEFAULT",
     }

@@ -136,8 +136,9 @@ class Lexer:
                 break
             
             if self.current_char() == '/' and self.peek_char() == '/':
-                self.skip_comment()
-                continue
+                if not self.tokens or self.tokens[-1].type in ["SEMICOLON", "LBRACE", "RBRACE"]:
+                    self.skip_comment()
+                    continue
             
             char = self.current_char()
             start_line = self.line

@@ -6,7 +6,7 @@ from .expressions import (
 from .statements import (
     CProgram, CFunctionDef, CVarDeclaration, CArrayDeclaration,
     CAssignment, CIfStatement, CWhileStatement, CForStatement,
-    CReturnStatement, CExpressionStatement
+    CReturnStatement, CExpressionStatement, CSwitchStatement, CCaseClause
 )
 
 __all__ = [
@@ -15,5 +15,5 @@ __all__ = [
     'CBinaryOp', 'CArrayAccess', 'CFunctionCall',
     'CProgram', 'CFunctionDef', 'CVarDeclaration', 'CArrayDeclaration',
     'CAssignment', 'CIfStatement', 'CWhileStatement', 'CForStatement',
-    'CReturnStatement', 'CExpressionStatement'
+    'CReturnStatement', 'CExpressionStatement', 'CSwitchStatement', 'CCaseClause'
 ]

@@ -154,19 +154,6 @@ class ExpressionParser:
             self.parser.advance()
             right = self.parse_expression()
             
-            if isinstance(left, Identifier) and isinstance(right, StringLiteral):
-                raise KatoSyntaxError(
-                    f"Cannot compare char with string. Use single quotes for char: '{right.value}' instead of \"{right.value}\"",
-                    token.line, token.column,
-                    self.parser.source_code
-                )
-            elif isinstance(left, StringLiteral) and isinstance(right, Identifier):
-                raise KatoSyntaxError(
-                    f"Cannot compare string with char. Use single quotes for char: '{left.value}' instead of \"{left.value}\"",
-                    token.line, token.column,
-                    self.parser.source_code
-                )
-            
             return BinaryOp(left, operator, right)
         
         return left

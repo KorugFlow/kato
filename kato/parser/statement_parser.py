@@ -2,7 +2,7 @@ from .ast.statements import (
     PrintStatement, ReturnStatement, VarDeclaration,
     CallStatement, IfStatement, Assignment,
     WhileStatement, IncrementStatement, DecrementStatement,
-    ArrayDeclaration, ArrayAssignment
+    ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause
 )
 from .errors import KatoSyntaxError
 
@@ -29,6 +29,8 @@ class StatementParser:
             return self.parse_if_statement()
         elif token.type == "WHILE":
             return self.parse_while_statement()
+        elif token.type == "SWITCH":
+            return self.parse_switch_statement()
         elif token.type == "IDENTIFIER":
             next_token = self.parser.peek_token()
             if next_token and next_token.type == "PLUS_PLUS":
@@ -383,3 +385,51 @@ class StatementParser:
         self.parser.expect("SEMICOLON")
         
         return ArrayAssignment(name, index, value)
+    
+    def parse_switch_statement(self):
+        switch_token = self.parser.current_token()
+        self.parser.expect("SWITCH")
+        self.parser.expect("LPAREN")
+        
+        expression = self.expr_parser.parse_expression()
+        
+        self.parser.expect("RPAREN")
+        self.parser.expect("LBRACE")
+        
+        cases = []
+        default_body = None
+        
+        while self.parser.current_token() and self.parser.current_token().type != "RBRACE":
+            if self.parser.current_token().type == "CASE":
+                self.parser.advance()
+                
+                case_value = self.expr_parser.parse_primary()
+                
+                case_body = []
+                while self.parser.current_token():
+                    if self.parser.current_token().type in ["CASE", "DEFAULT", "RBRACE"]:
+                        
+                        break
+                    case_body.append(self.parse_statement())
+                
+                cases.append(CaseClause(case_value, case_body))
+                
+            elif self.parser.current_token().type == "DEFAULT":
+                self.parser.advance()
+                self.parser.expect("LBRACE")
+                
+                default_body = []
+                while self.parser.current_token() and self.parser.current_token().type != "RBRACE":
+                    default_body.append(self.parse_statement())
+                
+                self.parser.expect("RBRACE")
+            else:
+                raise KatoSyntaxError(
+                    f"Expected 'case' or 'default' in switch statement, got '{self.parser.current_token().value}'",
+                    self.parser.current_token().line, self.parser.current_token().column,
+                    self.parser.source_code
+                )
+        
+        self.parser.expect("RBRACE")
+        
+        return SwitchStatement(expression, cases, default_body)
