@@ -50,11 +50,16 @@ class FunctionCodegen:
     def infer_return_type(self, function):
         from parser.ast import ReturnStatement, Identifier, StringLiteral, CharLiteral, FloatLiteral
         
+        if function.name == "main":
+            return "int"
+        
         param_types = getattr(function, 'param_types', {})
+        has_return_with_value = False
         
         for statement in function.body:
             if isinstance(statement, ReturnStatement):
                 if statement.value:
+                    has_return_with_value = True
                     if isinstance(statement.value, Identifier):
                         if statement.value.name in param_types:
                             return param_types[statement.value.name]
@@ -65,11 +70,11 @@ class FunctionCodegen:
                     elif isinstance(statement.value, FloatLiteral):
                         return "float"
         
-        return "int"
+        return "void" if not has_return_with_value else "int"
     
     def get_function_signature(self, function):
-        return_type = getattr(function, 'return_type', 'int')
-        c_type_map = {"int": "int", "float": "float", "char": "char", "string": "char*"}
+        return_type = getattr(function, 'return_type', 'void')
+        c_type_map = {"int": "int", "float": "float", "char": "char", "string": "char*", "void": "void"}
         c_return_type = c_type_map.get(return_type, 'int')
         
         if function.params:
@@ -79,10 +84,12 @@ class FunctionCodegen:
         return f"{c_return_type} {function.name}()"
     
     def compile_function(self, function):
+        from parser.ast import ReturnStatement
+        
         self.compiler.variables = {}
         
-        return_type = getattr(function, 'return_type', 'int')
-        c_type_map = {"int": "int", "float": "float", "char": "char", "string": "char*"}
+        return_type = getattr(function, 'return_type', 'void')
+        c_type_map = {"int": "int", "float": "float", "char": "char", "string": "char*", "void": "void"}
         c_return_type = c_type_map.get(return_type, 'int')
         
         if function.params:
@@ -104,6 +111,9 @@ class FunctionCodegen:
             c_code += self.stmt_codegen.compile_statement(statement)
         
         self.compiler.indent_level -= 1
+        has_return = any(isinstance(stmt, ReturnStatement) for stmt in function.body)
+        if return_type != "void" and not has_return:
+            c_code += self.compiler.indent() + "return 0;\n"
         c_code += "}\n"
         
         return c_code

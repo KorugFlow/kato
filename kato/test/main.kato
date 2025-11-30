@@ -1,47 +1,5 @@
-import filesystem;
-
+import welcome.kh; 
 func main() {
-    // Read previous best score
-    var string score_file = "score.txt";
-    var int best_score = 0;
-    print(file_read(*score_file*));
-    
-    if file_exists(score_file) == 1 {
-        var string content = file_read(score_file);
-        convert *content* > int;
-        best_score = *content*;
-    }
-
-    print("Welcome to 'Guess the Number'!\n");
-    print("I have chosen a number from 1 to 100. Try to guess it.\n");
-
-    var int number = random(1, 100);
-    var int guess = 0;
-    var int attempts = 0;
-
-    while (guess != number) {
-        guess = inpt("Your guess: ");
-        attempts++;
-        
-        if guess < number {
-            print("The number is higher!\n");
-        }
-        elif guess > number {
-            print("The number is lower!\n");
-        }
-    }
-
-    print("Congratulations! You guessed the number in *attempts* attempts.\n");
-
-    // Check for best score
-    if best_score == 0 || attempts < best_score {
-        best_score = attempts;
-        var string best_str = convert *best_score* > string;
-        file_write(score_file, best_str);
-        print("New record!\n");
-    } else {
-        print("Best record: *best_score* attempts\n");
-    }
-
+    print("hello");
     return 0;
 }
