@@ -1,5 +1,7 @@
 import welcome.kh; 
 func main() {
     print("hello");
+    print(welcome());
     return 0;
+    
 }

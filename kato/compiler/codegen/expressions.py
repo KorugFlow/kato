@@ -45,6 +45,11 @@ class ExpressionCodegen:
             else:
                 return f"(printf({prompt}), 0)"
         elif isinstance(expr, FunctionCall):
+            return_type = self.compiler.get_function_return_type(expr.name)
+            
+            if return_type == "void":
+                raise ValueError(f"Cannot use void function '{expr.name}' in expression")
+            
             if expr.name == "random":
                 if len(expr.arguments) == 2:
                     min_val = self.compile_expr(expr.arguments[0])

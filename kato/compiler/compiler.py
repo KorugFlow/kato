@@ -8,6 +8,7 @@ class CCompiler:
         self.variables = {}
         self.stdlib_imports = stdlib_imports or set()
         self.uses_conversion = False
+        self.function_return_types = {}
         
         self.expr_codegen = ExpressionCodegen(self)
         self.stmt_codegen = StatementCodegen(self, self.expr_codegen)
@@ -16,11 +17,15 @@ class CCompiler:
     def indent(self):
         return "    " * self.indent_level
     
+    def get_function_return_type(self, func_name):
+        return self.function_return_types.get(func_name, "int")
+    
     def compile(self):
         for function in self.ast.functions:
             if function.params:
                 function.param_types = self.func_codegen.infer_param_types(function, self.ast)
             function.return_type = self.func_codegen.infer_return_type(function)
+            self.function_return_types[function.name] = function.return_type
         
         c_code = "#include <stdio.h>\n"
         c_code += "#include <string.h>\n"

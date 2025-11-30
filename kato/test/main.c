@@ -12,6 +12,7 @@ void welcome() {
 int main() {
     srand(time(NULL));
     printf("hello");
+    printf("%s", welcome());
     return 0;
 }
 
