@@ -77,6 +77,7 @@ print может выводить:
 - Переменные в строке через идентификаторы: `print("Value: *x*");`
 - Арифметические выражения: `print(*x* + *y*);` или `print(x + y);`
 - Несколько значений: `print("hello" 20 "how are you\n");`
+- Вызовы функций: `print(file_read("file.txt"));` или `print(random(1, 10));`
 
 ## Функция inpt
 
@@ -154,6 +155,10 @@ else {
 - `<=` - меньше или равно
 - `>=` - больше или равно
 
+Логические операторы:
+- `&&` - логическое И (AND)
+- `||` - логическое ИЛИ (OR)
+
 Пример:
 ```
 var int x = 10;
@@ -170,6 +175,17 @@ else {
 var char op = '+';
 if op == '+' {  // char сравнение в одинарных кавычках!
     print("plus\n");
+}
+
+// Логические операторы
+var int age = 25;
+var int score = 85;
+if age >= 18 && score >= 80 {
+    print("Допущен к экзамену\n");
+}
+
+if age < 18 || score < 50 {
+    print("Не допущен\n");
 }
 ```
 
@@ -649,6 +665,7 @@ print can output:
 - Variables in strings through identifiers: `print("Value: *x*");`
 - Arithmetic expressions: `print(*x* + *y*);` or `print(x + y);`
 - Multiple values: `print("hello" 20 "how are you\n");`
+- Function calls: `print(file_read("file.txt"));` or `print(random(1, 10));`
 
 ## inpt Function
 
@@ -726,6 +743,10 @@ Comparison operators:
 - `<=` - less than or equal
 - `>=` - greater than or equal
 
+Logical operators:
+- `&&` - logical AND
+- `||` - logical OR
+
 Example:
 ```
 var int x = 10;
@@ -742,6 +763,17 @@ else {
 var char op = '+';
 if op == '+' {  // char comparison in single quotes!
     print("plus\n");
+}
+
+// Logical operators
+var int age = 25;
+var int score = 85;
+if age >= 18 && score >= 80 {
+    print("Allowed to take exam\n");
+}
+
+if age < 18 || score < 50 {
+    print("Not allowed\n");
 }
 ```
 

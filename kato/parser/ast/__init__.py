@@ -8,7 +8,8 @@ from .statements import (
 )
 from .expressions import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
-    Identifier, BinaryOp, InptCall, ArrayAccess, FunctionCall
+    Identifier, BinaryOp, InptCall, ArrayAccess, FunctionCall,
+    ConvertExpression
 )
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     'ArrayDeclaration', 'ArrayAssignment', 'SwitchStatement', 'CaseClause',
     'ConvertStatement',
     'StringLiteral', 'NumberLiteral', 'FloatLiteral', 'CharLiteral',
-    'Identifier', 'BinaryOp', 'InptCall', 'ArrayAccess', 'FunctionCall'
+    'Identifier', 'BinaryOp', 'InptCall', 'ArrayAccess', 'FunctionCall',
+    'ConvertExpression'
 ]

@@ -4,7 +4,8 @@ from parser.ast import (
     WhileStatement, IncrementStatement, DecrementStatement,
     ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause,
     ConvertStatement,
-    StringLiteral, NumberLiteral, FloatLiteral, Identifier, BinaryOp, InptCall, ArrayAccess, CharLiteral
+    StringLiteral, NumberLiteral, FloatLiteral, Identifier, BinaryOp, InptCall, ArrayAccess, CharLiteral,
+    ConvertExpression, FunctionCall
 )
 import re
 
@@ -119,7 +120,19 @@ class StatementCodegen:
             elif isinstance(value, BinaryOp):
                 format_parts.append("%d")
                 printf_args.append(self.expr_codegen.compile_expr(value))
+            elif isinstance(value, FunctionCall):
+                func_name = value.name
+                if func_name == "file_read":
+                    format_parts.append("%s")
+                elif func_name == "file_exists" or func_name == "file_write" or func_name == "file_append" or func_name == "file_delete":
+                    format_parts.append("%d")
+                elif func_name == "random":
+                    format_parts.append("%d")
+                else:
+                    format_parts.append("%s")
+                printf_args.append(self.expr_codegen.compile_expr(value))
         
+   
         format_string = "".join(format_parts)
         escaped_string = format_string.replace('\\', '\\\\').replace('\n', '\\n').replace('\t', '\\t').replace('\r', '\\r').replace('"', '\\"')
         
@@ -177,6 +190,33 @@ class StatementCodegen:
                 code += f'{self.compiler.indent()}fgets({var_name}, 4096, stdin);\n'
                 code += f'{self.compiler.indent()}{var_name}[strcspn({var_name}, "\\n")] = 0;\n'
             
+            return code
+        elif isinstance(var_value, ConvertExpression):
+            self.compiler.uses_conversion = True
+            source_expr = self.expr_codegen.compile_expr(var_value.expression)
+            target_type = var_value.target_type
+            
+            code = f'{self.compiler.indent()}{c_type} {var_name};\n'
+            code += f'{self.compiler.indent()}{{\n'
+            self.compiler.indent_level += 1
+            
+            if target_type == "string":
+                # Converting to string
+                source_var = var_value.expression.name if isinstance(var_value.expression, Identifier) else None
+                if source_var and source_var in self.compiler.variables:
+                    source_type = self.compiler.variables[source_var]
+                    code += f'{self.compiler.indent()}{var_name} = (char*)malloc(32);\n'
+                    if source_type == "int":
+                        code += f'{self.compiler.indent()}sprintf({var_name}, "%d", {source_expr});\n'
+                    elif source_type == "float":
+                        code += f'{self.compiler.indent()}sprintf({var_name}, "%f", {source_expr});\n'
+                    elif source_type == "char":
+                        code += f'{self.compiler.indent()}sprintf({var_name}, "%c", {source_expr});\n'
+                    else:
+                        code += f'{self.compiler.indent()}strcpy({var_name}, {source_expr});\n'
+            
+            self.compiler.indent_level -= 1
+            code += f'{self.compiler.indent()}}}\n'
             return code
         else:
             c_value = self.expr_codegen.compile_expr(var_value, var_type)
@@ -331,6 +371,10 @@ class StatementCodegen:
     def compile_convert(self, statement):
         self.compiler.uses_conversion = True
         
+        var_name = None
+        if isinstance(statement.expression, Identifier):
+            var_name = statement.expression.name
+        
         expr = self.expr_codegen.compile_expr(statement.expression)
         target_type = statement.target_type
         
@@ -342,10 +386,14 @@ class StatementCodegen:
         }
         c_target = c_type_map.get(target_type, "int")
         
-        code = f'{self.compiler.indent()}{{\n'
-        self.compiler.indent_level += 1
+        temp_var = f"__convert_temp_{var_name}" if var_name else "__convert_temp"
+        
+        code = ""
         
         if target_type == "int":
+            code += f'{self.compiler.indent()}int {temp_var} = 0;\n'
+            code += f'{self.compiler.indent()}{{\n'
+            self.compiler.indent_level += 1
             code += f'{self.compiler.indent()}if (strcmp({expr}, "") == 0) {{\n'
             self.compiler.indent_level += 1
             code += f'{self.compiler.indent()}fprintf(stderr, "Error: Cannot convert empty string to int\\n");\n'
@@ -360,14 +408,21 @@ class StatementCodegen:
             self.compiler.indent_level -= 1
             code += f'{self.compiler.indent()}}} else {{\n'
             self.compiler.indent_level += 1
-            code += f'{self.compiler.indent()}{expr} = (char*)malloc(32);\n'
-            code += f'{self.compiler.indent()}sprintf({expr}, "%d", (int)val);\n'
+            code += f'{self.compiler.indent()}{temp_var} = (int)val;\n'
             self.compiler.indent_level -= 1
             code += f'{self.compiler.indent()}}}  \n'
             self.compiler.indent_level -= 1
             code += f'{self.compiler.indent()}}}  \n'
+            self.compiler.indent_level -= 1
+            code += f'{self.compiler.indent()}}}\n'
+            if var_name:
+                code += f'{self.compiler.indent()}#define {var_name} {temp_var}\n'
+                self.compiler.variables[var_name] = "int"
         
         elif target_type == "float":
+            code += f'{self.compiler.indent()}float {temp_var} = 0.0;\n'
+            code += f'{self.compiler.indent()}{{\n'
+            self.compiler.indent_level += 1
             code += f'{self.compiler.indent()}if (strcmp({expr}, "") == 0) {{\n'
             self.compiler.indent_level += 1
             code += f'{self.compiler.indent()}fprintf(stderr, "Error: Cannot convert empty string to float\\n");\n'
@@ -382,12 +437,16 @@ class StatementCodegen:
             self.compiler.indent_level -= 1
             code += f'{self.compiler.indent()}}} else {{\n'
             self.compiler.indent_level += 1
-            code += f'{self.compiler.indent()}{expr} = (char*)malloc(32);\n'
-            code += f'{self.compiler.indent()}sprintf({expr}, "%f", (float)val);\n'
+            code += f'{self.compiler.indent()}{temp_var} = (float)val;\n'
             self.compiler.indent_level -= 1
             code += f'{self.compiler.indent()}}}  \n'
             self.compiler.indent_level -= 1
             code += f'{self.compiler.indent()}}}  \n'
+            self.compiler.indent_level -= 1
+            code += f'{self.compiler.indent()}}}\n'
+            if var_name:
+                code += f'{self.compiler.indent()}#define {var_name} {temp_var}\n'
+                self.compiler.variables[var_name] = "float"
         
         elif target_type == "char":
             code += f'{self.compiler.indent()}if (strlen({expr}) > 0) {{\n'
@@ -398,8 +457,5 @@ class StatementCodegen:
         
         elif target_type == "string":
             pass
-        
-        self.compiler.indent_level -= 1
-        code += f'{self.compiler.indent()}}}\n'
         
         return code

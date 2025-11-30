@@ -42,6 +42,8 @@ class StatementParser:
                 return self.parse_decrement()
             elif next_token and next_token.type == "LBRACKET":
                 return self.parse_array_assignment()
+            elif next_token and next_token.type == "LPAREN":
+                return self.parse_direct_call_statement()
             else:
                 return self.parse_assignment()
         else:
@@ -457,3 +459,37 @@ class StatementParser:
         self.parser.expect("SEMICOLON")
         
         return ConvertStatement(expression, target_type)
+    
+    def parse_direct_call_statement(self):
+        func_name_token = self.parser.current_token()
+        func_name = func_name_token.value
+        
+        if func_name not in self.parser.defined_functions and func_name not in self.parser.builtin_functions:
+            raise KatoSyntaxError(
+                f"Variable '{func_name}' is not defined",
+                func_name_token.line, func_name_token.column,
+                self.parser.source_code
+            )
+        
+        self.parser.advance()
+        self.parser.expect("LPAREN")
+        
+        arguments = []
+        while self.parser.current_token() and self.parser.current_token().type != "RPAREN":
+            arguments.append(self.expr_parser.parse_expression())
+            
+            if self.parser.current_token() and self.parser.current_token().type == "COMMA":
+                self.parser.advance()
+        
+        self.parser.expect("RPAREN")
+        
+        semicolon_token = self.parser.current_token()
+        if semicolon_token is None or semicolon_token.type != "SEMICOLON":
+            raise KatoSyntaxError(
+                "Missing semicolon ';' after function call",
+                func_name_token.line, func_name_token.column,
+                self.parser.source_code
+            )
+        self.parser.expect("SEMICOLON")
+        
+        return CallStatement(func_name, arguments)

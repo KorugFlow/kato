@@ -235,6 +235,20 @@ class Lexer:
                     self.advance()
                 else:
                     raise SyntaxError(f"Dude, what even is '{char}' at {start_line}:{start_column}? I have no idea what you want from me here.")
+            elif char == '&':
+                if self.peek_char() == '&':
+                    self.tokens.append(Token("AND", "&&", start_line, start_column))
+                    self.advance()
+                    self.advance()
+                else:
+                    raise SyntaxError(f"Dude, what even is '{char}' at {start_line}:{start_column}? I have no idea what you want from me here.")
+            elif char == '|':
+                if self.peek_char() == '|':
+                    self.tokens.append(Token("OR", "||", start_line, start_column))
+                    self.advance()
+                    self.advance()
+                else:
+                    raise SyntaxError(f"Dude, what even is '{char}' at {start_line}:{start_column}? I have no idea what you want from me here.")
             else:
                 raise SyntaxError(f"Dude, what even is '{char}' at {start_line}:{start_column}? I have no idea what you want from me here.")
         

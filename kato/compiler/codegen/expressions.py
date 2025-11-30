@@ -1,6 +1,7 @@
 from parser.ast import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
-    Identifier, BinaryOp, InptCall, ArrayAccess, FunctionCall
+    Identifier, BinaryOp, InptCall, ArrayAccess, FunctionCall,
+    ConvertExpression
 )
 
 
@@ -54,5 +55,7 @@ class ExpressionCodegen:
             else:
                 args = ", ".join([self.compile_expr(arg) for arg in expr.arguments])
                 return f"{expr.name}({args})"
+        elif isinstance(expr, ConvertExpression):
+            return f"__convert_temp__"
         else:
             return "0"

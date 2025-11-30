@@ -48,3 +48,9 @@ class FunctionCall(ASTNode):
     def __init__(self, name, arguments):
         self.name = name
         self.arguments = arguments
+
+
+class ConvertExpression(ASTNode):
+    def __init__(self, expression, target_type):
+        self.expression = expression
+        self.target_type = target_type

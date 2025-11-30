@@ -1,6 +1,7 @@
 from .ast.expressions import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
-    Identifier, BinaryOp, InptCall, ArrayAccess, FunctionCall
+    Identifier, BinaryOp, InptCall, ArrayAccess, FunctionCall,
+    ConvertExpression
 )
 from .errors import KatoSyntaxError
 
@@ -10,7 +11,43 @@ class ExpressionParser:
         self.parser = parser
     
     def parse_expression(self):
-        return self.parse_additive()
+        return self.parse_logical_or()
+    
+    def parse_logical_or(self):
+        left = self.parse_logical_and()
+        
+        while self.parser.current_token() and self.parser.current_token().type == "OR":
+            op_token = self.parser.current_token()
+            operator = op_token.value
+            self.parser.advance()
+            right = self.parse_logical_and()
+            left = BinaryOp(left, operator, right)
+        
+        return left
+    
+    def parse_logical_and(self):
+        left = self.parse_comparison_expr()
+        
+        while self.parser.current_token() and self.parser.current_token().type == "AND":
+            op_token = self.parser.current_token()
+            operator = op_token.value
+            self.parser.advance()
+            right = self.parse_comparison_expr()
+            left = BinaryOp(left, operator, right)
+        
+        return left
+    
+    def parse_comparison_expr(self):
+        left = self.parse_additive()
+        
+        token = self.parser.current_token()
+        if token and token.type in ["EQUAL_EQUAL", "NOT_EQUAL", "LESS", "GREATER", "LESS_EQUAL", "GREATER_EQUAL"]:
+            operator = token.value
+            self.parser.advance()
+            right = self.parse_additive()
+            return BinaryOp(left, operator, right)
+        
+        return left
     
     def parse_additive(self):
         left = self.parse_multiplicative()
@@ -138,6 +175,20 @@ class ExpressionParser:
             prompt = self.parse_expression()
             self.parser.expect("RPAREN")
             return InptCall(prompt)
+        elif token.type == "CONVERT":
+            self.parser.advance()
+            expr = self.parse_primary()
+            self.parser.expect("GREATER")
+            type_token = self.parser.current_token()
+            if type_token.type not in ["INT", "FLOAT", "CHAR", "STRING_TYPE"]:
+                raise KatoSyntaxError(
+                    f"Expected type (int, float, char, string), got '{type_token.value}'",
+                    type_token.line, type_token.column,
+                    self.parser.source_code
+                )
+            target_type = type_token.value
+            self.parser.advance()
+            return ConvertExpression(expr, target_type)
         else:
             raise KatoSyntaxError(
                 f"Expected expression (string, number, or identifier), got '{token.value}'",
@@ -155,14 +206,4 @@ class ExpressionParser:
                 self.parser.source_code
             )
         
-        left = self.parse_expression()
-        
-        token = self.parser.current_token()
-        if token and token.type in ["EQUAL_EQUAL", "NOT_EQUAL", "LESS", "GREATER", "LESS_EQUAL", "GREATER_EQUAL"]:
-            operator = token.value
-            self.parser.advance()
-            right = self.parse_expression()
-            
-            return BinaryOp(left, operator, right)
-        
-        return left
+        return self.parse_expression()
