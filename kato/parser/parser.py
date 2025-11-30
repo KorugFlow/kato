@@ -12,6 +12,7 @@ class Parser:
         self.defined_functions = set()
         self.builtin_functions = {"print", "random"}
         self.defined_variables = set()
+        self.function_return_types = {}
         
         self.expr_parser = ExpressionParser(self)
         self.stmt_parser = StatementParser(self, self.expr_parser)
@@ -132,4 +133,27 @@ class Parser:
         
         self.expect("RBRACE")
         
+        return_type = self.infer_return_type(body)
+        self.function_return_types[name] = return_type
+        
         return Function(name, params, body)
+    
+    def infer_return_type(self, body):
+        from .ast import ReturnStatement, StringLiteral, CharLiteral, FloatLiteral, Identifier
+        
+        has_return_with_value = False
+        
+        for statement in body:
+            if isinstance(statement, ReturnStatement):
+                if statement.value:
+                    has_return_with_value = True
+                    if isinstance(statement.value, StringLiteral):
+                        return "string"
+                    elif isinstance(statement.value, CharLiteral):
+                        return "char"
+                    elif isinstance(statement.value, FloatLiteral):
+                        return "float"
+                    elif isinstance(statement.value, Identifier):
+                        return "int"
+        
+        return "void" if not has_return_with_value else "int"

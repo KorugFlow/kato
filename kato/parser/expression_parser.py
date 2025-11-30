@@ -109,6 +109,16 @@ class ExpressionParser:
                         token.line, token.column,
                         self.parser.source_code
                     )
+                
+                if name in self.parser.function_return_types:
+                    return_type = self.parser.function_return_types[name]
+                    if return_type == "void":
+                        raise KatoSyntaxError(
+                            f"Cannot use void function '{name}' in expression",
+                            token.line, token.column,
+                            self.parser.source_code
+                        )
+                
                 self.parser.advance()
                 arguments = []
                 while self.parser.current_token() and self.parser.current_token().type != "RPAREN":

@@ -149,7 +149,7 @@ def main():
         from compiler.preprocessor import Preprocessor
         
         preprocessor = Preprocessor(input_path)
-        processed_source, imported_functions = preprocessor.process(source_code)
+        processed_source, imported_functions, imported_function_return_types = preprocessor.process(source_code)
         
         lexer = Lexer(processed_source)
         tokens = lexer.tokenize()
@@ -166,6 +166,9 @@ def main():
         
         for func_name in imported_functions.keys():
             parser_obj.defined_functions.add(func_name)
+        
+        for func_name, return_type in imported_function_return_types.items():
+            parser_obj.function_return_types[func_name] = return_type
         
         if "filesystem" in preprocessor.stdlib_imports:
             from compiler.std.filesystem import FILESYSTEM_FUNCTIONS

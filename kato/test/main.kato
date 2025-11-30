@@ -1,7 +1,7 @@
 import welcome.kh; 
 func main() {
     print("hello");
-    print(welcome());
+    call welcome();
     return 0;
     
 }
