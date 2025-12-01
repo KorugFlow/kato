@@ -17,6 +17,7 @@ class Preprocessor:
         self.imported_function_return_types = {}
         self.all_functions = []
         self.stdlib_imports = set()
+        self.c_imports = set()
     
     def process(self, source_code):
         imports = self.extract_imports(source_code)

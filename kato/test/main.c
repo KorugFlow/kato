@@ -3,16 +3,11 @@
 #include <stdlib.h>
 #include <time.h>
 
-void welcome();
-
-void welcome() {
-    printf("hello to kato! hello, bro!");
-}
 
 int main() {
     srand(time(NULL));
-    printf("hello");
-    welcome();
-    return 0;
+    int a = 20;
+    printf("%d", (a + 5));
+return 0;
 }
 

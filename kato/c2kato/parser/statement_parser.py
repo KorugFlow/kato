@@ -79,43 +79,57 @@ class CStatementParser:
             var_type += "*"
             self.parser.advance()
         
-        name_token = self.parser.expect("IDENTIFIER")
-        name = name_token.value
+        declarations = []
         
-        if self.parser.current_token() and self.parser.current_token().type == "LBRACKET":
-            self.parser.advance()
+        while True:
+            name_token = self.parser.expect("IDENTIFIER")
+            name = name_token.value
             
-            size = None
-            if self.parser.current_token() and self.parser.current_token().type == "NUMBER":
-                size = self.parser.current_token().value
+            if self.parser.current_token() and self.parser.current_token().type == "LBRACKET":
                 self.parser.advance()
-            
-            self.parser.expect("RBRACKET")
-            
-            values = None
-            if self.parser.current_token() and self.parser.current_token().type == "EQUALS":
-                self.parser.advance()
-                self.parser.expect("LBRACE")
                 
-                values = []
-                while self.parser.current_token() and self.parser.current_token().type != "RBRACE":
-                    values.append(self.expr_parser.parse_expression())
+                size = None
+                if self.parser.current_token() and self.parser.current_token().type == "NUMBER":
+                    size = self.parser.current_token().value
+                    self.parser.advance()
+                
+                self.parser.expect("RBRACKET")
+                
+                values = None
+                if self.parser.current_token() and self.parser.current_token().type == "EQUALS":
+                    self.parser.advance()
+                    self.parser.expect("LBRACE")
                     
-                    if self.parser.current_token() and self.parser.current_token().type == "COMMA":
-                        self.parser.advance()
+                    values = []
+                    while self.parser.current_token() and self.parser.current_token().type != "RBRACE":
+                        values.append(self.expr_parser.parse_expression())
+                        
+                        if self.parser.current_token() and self.parser.current_token().type == "COMMA":
+                            self.parser.advance()
+                    
+                    self.parser.expect("RBRACE")
                 
-                self.parser.expect("RBRACE")
+                declarations.append(CArrayDeclaration(var_type, name, size, values))
+            else:
+                value = None
+                if self.parser.current_token() and self.parser.current_token().type == "EQUALS":
+                    self.parser.advance()
+                    value = self.expr_parser.parse_expression()
+                
+                declarations.append(CVarDeclaration(var_type, name, value))
             
-            self.parser.expect("SEMICOLON")
-            return CArrayDeclaration(var_type, name, size, values)
-        else:
-            value = None
-            if self.parser.current_token() and self.parser.current_token().type == "EQUALS":
+            if self.parser.current_token() and self.parser.current_token().type == "COMMA":
                 self.parser.advance()
-                value = self.expr_parser.parse_expression()
-            
-            self.parser.expect("SEMICOLON")
-            return CVarDeclaration(var_type, name, value)
+            else:
+                break
+        
+        self.parser.expect("SEMICOLON")
+        
+        if len(declarations) == 1:
+            return declarations[0]
+        else:
+            from ..ast import CMultiDeclaration
+            return CMultiDeclaration(declarations)
     
     def parse_if_statement(self):
         self.parser.expect("IF")

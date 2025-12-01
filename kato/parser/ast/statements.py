@@ -97,3 +97,22 @@ class ConvertStatement(ASTNode):
     def __init__(self, expression, target_type):
         self.expression = expression
         self.target_type = target_type
+
+
+class CImportStatement(ASTNode):
+    def __init__(self, header_name):
+        self.header_name = header_name
+
+
+class CCallStatement(ASTNode):
+    def __init__(self, func_name, arguments):
+        self.func_name = func_name
+        self.arguments = arguments
+
+
+class BreakStatement(ASTNode):
+    pass
+
+
+class ContinueStatement(ASTNode):
+    pass

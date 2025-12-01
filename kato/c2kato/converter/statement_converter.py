@@ -24,6 +24,15 @@ class StatementConverter:
         if c_stmt is None:
             return None
         
+        from ..ast import CMultiDeclaration
+        if isinstance(c_stmt, CMultiDeclaration):
+            results = []
+            for decl in c_stmt.declarations:
+                converted = self.convert_statement(decl)
+                if converted:
+                    results.append(converted)
+            return results if len(results) > 1 else (results[0] if results else None)
+        
         if isinstance(c_stmt, CFunctionCall):
             if c_stmt.name == "printf":
                 converted_args = [self.expr_converter.convert_expression(arg) for arg in c_stmt.arguments]
@@ -31,15 +40,23 @@ class StatementConverter:
                 self.last_printf_output = print_values
                 return PrintStatement(print_values)
             elif c_stmt.name == "scanf":
-                return self.convert_scanf(c_stmt)
+                result = self.convert_scanf(c_stmt)
+                return result
             else:
                 from parser.ast import CallStatement
                 arguments = [self.expr_converter.convert_expression(arg) for arg in c_stmt.arguments] if c_stmt.arguments else []
                 return CallStatement(c_stmt.name, arguments)
         
         if isinstance(c_stmt, CVarDeclaration):
+            from parser.ast import NumberLiteral, FloatLiteral
             kato_type = map_c_type_to_kato(c_stmt.var_type)
-            value = self.expr_converter.convert_expression(c_stmt.value) if c_stmt.value else None
+            if c_stmt.value:
+                value = self.expr_converter.convert_expression(c_stmt.value)
+            else:
+                if kato_type == "float":
+                    value = FloatLiteral(0.0)
+                else:
+                    value = NumberLiteral(0)
             return VarDeclaration(kato_type, c_stmt.name, value)
         
         elif isinstance(c_stmt, CArrayDeclaration):
@@ -129,12 +146,13 @@ class StatementConverter:
         if not var_name:
             return None
         
-        prompt = StringLiteral("")
+        prompt_text = ""
         if self.last_printf_output and len(self.last_printf_output) > 0:
-            last_val = self.last_printf_output[0] if isinstance(self.last_printf_output, list) else self.last_printf_output
-            if isinstance(last_val, StringLiteral):
-                prompt = last_val
+            for val in self.last_printf_output:
+                if isinstance(val, StringLiteral):
+                    prompt_text += val.value
         
+        prompt = StringLiteral(prompt_text)
         inpt_call = InptCall(prompt)
         
         return Assignment(var_name, inpt_call)

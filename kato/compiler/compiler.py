@@ -2,11 +2,12 @@ from .codegen import ExpressionCodegen, StatementCodegen, FunctionCodegen
 
 
 class CCompiler:
-    def __init__(self, ast, stdlib_imports=None):
+    def __init__(self, ast, stdlib_imports=None, c_imports=None):
         self.ast = ast
         self.indent_level = 0
         self.variables = {}
         self.stdlib_imports = stdlib_imports or set()
+        self.c_imports = c_imports or set()
         self.uses_conversion = False
         self.function_return_types = {}
         
@@ -21,6 +22,10 @@ class CCompiler:
         return self.function_return_types.get(func_name, "int")
     
     def compile(self):
+        if hasattr(self.ast, 'c_imports'):
+            for c_import in self.ast.c_imports:
+                self.c_imports.add(c_import.header_name)
+        
         for function in self.ast.functions:
             if function.params:
                 function.param_types = self.func_codegen.infer_param_types(function, self.ast)
@@ -30,7 +35,12 @@ class CCompiler:
         c_code = "#include <stdio.h>\n"
         c_code += "#include <string.h>\n"
         c_code += "#include <stdlib.h>\n"
-        c_code += "#include <time.h>\n\n"
+        c_code += "#include <time.h>\n"
+        
+        for c_header in self.c_imports:
+            c_code += f"#include <{c_header}>\n"
+        
+        c_code += "\n"
         
         if "filesystem" in self.stdlib_imports:
             from .std.filesystem import get_filesystem_functions

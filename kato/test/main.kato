@@ -1,7 +1,5 @@
-import welcome.kh; 
 func main() {
-    print("hello");
-    call welcome();
-    return 0;
-    
+   var int a = 20;
+   print(a + 5);
 }
+

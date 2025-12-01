@@ -124,7 +124,21 @@ class Lexer:
         
         if identifier in self.keywords:
             token_type = self.keywords[identifier]
-            return Token(token_type, identifier, start_line, start_column)
+            token = Token(token_type, identifier, start_line, start_column)
+            
+            if token_type == "C_PREFIX" and self.current_char() == '.':
+                self.advance()
+                next_part = ""
+                while self.current_char() and (self.current_char().isalnum() or self.current_char() == '_'):
+                    next_part += self.current_char()
+                    self.advance()
+                
+                if next_part == "import":
+                    return Token("C_IMPORT", "c.import", start_line, start_column)
+                else:
+                    return Token("C_CALL", f"c.{next_part}", start_line, start_column)
+            
+            return token
         else:
             return Token("IDENTIFIER", identifier, start_line, start_column)
     
@@ -249,6 +263,9 @@ class Lexer:
                     self.advance()
                 else:
                     raise SyntaxError(f"Dude, what even is '{char}' at {start_line}:{start_column}? I have no idea what you want from me here.")
+            elif char == '.':
+                self.tokens.append(Token("DOT", char, start_line, start_column))
+                self.advance()
             else:
                 raise SyntaxError(f"Dude, what even is '{char}' at {start_line}:{start_column}? I have no idea what you want from me here.")
         

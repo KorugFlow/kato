@@ -3,7 +3,8 @@ from parser.ast import (
     CallStatement, IfStatement, Assignment,
     WhileStatement, IncrementStatement, DecrementStatement,
     ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause,
-    ConvertStatement,
+    ConvertStatement, CImportStatement, CCallStatement,
+    BreakStatement, ContinueStatement,
     StringLiteral, NumberLiteral, FloatLiteral, Identifier, BinaryOp, InptCall, ArrayAccess, CharLiteral,
     ConvertExpression, FunctionCall
 )
@@ -16,7 +17,15 @@ class StatementCodegen:
         self.expr_codegen = expr_codegen
     
     def compile_statement(self, statement):
-        if isinstance(statement, PrintStatement):
+        if isinstance(statement, BreakStatement):
+            return f'{self.compiler.indent()}break;\n'
+        elif isinstance(statement, ContinueStatement):
+            return f'{self.compiler.indent()}continue;\n'
+        elif isinstance(statement, CImportStatement):
+            return self.compile_c_import(statement)
+        elif isinstance(statement, CCallStatement):
+            return self.compile_c_call(statement)
+        elif isinstance(statement, PrintStatement):
             return self.compile_print(statement)
         elif isinstance(statement, ReturnStatement):
             return self.compile_return(statement)
@@ -459,3 +468,11 @@ class StatementCodegen:
             pass
         
         return code
+
+    def compile_c_import(self, statement):
+        self.compiler.c_imports.add(statement.header_name)
+        return ""
+    
+    def compile_c_call(self, statement):
+        args = ", ".join([self.expr_codegen.compile_expr(arg) for arg in statement.arguments]) if statement.arguments else ""
+        return f'{self.compiler.indent()}{statement.func_name}({args});\n'

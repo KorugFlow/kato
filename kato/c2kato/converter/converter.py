@@ -31,6 +31,9 @@ class Converter:
         for stmt in c_func.body:
             converted = self.stmt_converter.convert_statement(stmt)
             if converted:
-                body.append(converted)
+                if isinstance(converted, list):
+                    body.extend(converted)
+                else:
+                    body.append(converted)
         
         return Function(name, params, body)

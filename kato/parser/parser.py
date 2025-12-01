@@ -50,9 +50,12 @@ class Parser:
     
     def parse(self):
         functions = []
+        c_imports = []
         
         while self.current_token() and self.current_token().type != "EOF":
-            if self.current_token().type == "FUNCTION":
+            if self.current_token().type == "C_IMPORT":
+                c_imports.append(self.stmt_parser.parse_c_import())
+            elif self.current_token().type == "FUNCTION":
                 functions.append(self.parse_function())
             else:
                 token = self.current_token()
@@ -70,7 +73,9 @@ class Parser:
                 self.source_code
             )
         
-        return Program(functions)
+        program = Program(functions)
+        program.c_imports = c_imports
+        return program
     
     def parse_function(self):
         self.expect("FUNCTION")

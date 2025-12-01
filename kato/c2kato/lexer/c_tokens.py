@@ -1,6 +1,7 @@
 C_KEYWORDS = {
     "int": "INT_TYPE",
     "float": "FLOAT_TYPE",
+    "double": "FLOAT_TYPE",
     "char": "CHAR_TYPE",
     "void": "VOID_TYPE",
     "if": "IF",

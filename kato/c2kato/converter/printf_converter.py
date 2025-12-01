@@ -15,7 +15,7 @@ class PrintfConverter:
         
         format_str = format_string.value
         
-        pattern = r'%[dfsci]'
+        pattern = r'%\.?\d*[dfsci]|%lf|%\.?\d*lf'
         parts = re.split(pattern, format_str)
         specifiers = re.findall(pattern, format_str)
         
@@ -33,11 +33,11 @@ class PrintfConverter:
                 spec = specifiers[i]
                 var = variables[var_index]
                 
-                if spec in ['%d', '%i', '%f']:
+                if spec in ['%d', '%i', '%f', '%lf'] or 'lf' in spec or 'f' in spec:
                     if isinstance(var, Identifier):
-                        result_parts.append(Identifier(f"*{var.name}*"))
+                        result_parts.append(StringLiteral(f"*{var.name}*"))
                     elif isinstance(var, ArrayAccess):
-                        result_parts.append(Identifier(f"*{var.name}[{self.expr_to_str(var.index)}]*"))
+                        result_parts.append(StringLiteral(f"*{var.name}[{self.expr_to_str(var.index)}]*"))
                     else:
                         result_parts.append(var)
                 else:

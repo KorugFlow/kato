@@ -77,3 +77,8 @@ class CCaseClause(CASTNode):
     def __init__(self, value, body):
         self.value = value
         self.body = body
+
+
+class CMultiDeclaration(CASTNode):
+    def __init__(self, declarations):
+        self.declarations = declarations

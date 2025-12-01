@@ -4,7 +4,7 @@ from parser.ast import (
     ReturnStatement, IncrementStatement, DecrementStatement,
     PrintStatement, CallStatement, SwitchStatement, CaseClause,
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
-    Identifier, BinaryOp, ArrayAccess
+    Identifier, BinaryOp, ArrayAccess, InptCall
 )
 from .formatter import KatoFormatter
 
@@ -115,14 +115,14 @@ class KatoGenerator:
             
             result_parts = []
             for v in values:
-                expr_str = self.generate_expression(v)
-                
-                if isinstance(v, Identifier) and expr_str.startswith("*") and expr_str.endswith("*"):
-                    result_parts.append(expr_str)
-                elif isinstance(v, StringLiteral):
+                if isinstance(v, StringLiteral):
                     result_parts.append(f'"{v.value}"')
+                elif isinstance(v, Identifier):
+                    result_parts.append(v.name)
+                elif isinstance(v, BinaryOp):
+                    result_parts.append(self.generate_expression(v))
                 else:
-                    result_parts.append(expr_str)
+                    result_parts.append(self.generate_expression(v))
             
             values_str = " ".join(result_parts)
             return f"{self.indent()}print({values_str});\n"
@@ -189,5 +189,8 @@ class KatoGenerator:
         elif isinstance(expr, ArrayAccess):
             index = self.generate_expression(expr.index)
             return f"{expr.name}[{index}]"
+        elif isinstance(expr, InptCall):
+            prompt = self.generate_expression(expr.prompt)
+            return f"inpt({prompt})"
         else:
             return "0"

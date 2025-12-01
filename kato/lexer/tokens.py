@@ -20,4 +20,7 @@ class tokens:
         "case": "CASE",
         "default": "DEFAULT",
         "convert": "CONVERT",
+        "c": "C_PREFIX",
+        "break": "BREAK",
+        "continue": "CONTINUE",
     }

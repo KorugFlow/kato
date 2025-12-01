@@ -255,6 +255,25 @@ while (i < 10) {
 }
 ```
 
+**Управление циклом:**
+- `break;` - выход из цикла
+- `continue;` - переход к следующей итерации
+
+Пример:
+```
+var int i = 0;
+while (i < 10) {
+    i++;
+    if i == 5 {
+        continue;
+    }
+    if i == 8 {
+        break;
+    }
+    print(*i* "\n");
+}
+```
+
 ## Switch
 
 Kato поддерживает оператор switch для множественного выбора:
@@ -263,9 +282,11 @@ Kato поддерживает оператор switch для множестве�
 switch (переменная) {
     case значение1
         // код
+        break;
     
     case значение2
         // код
+        break;
     
     default {
         // код по умолчанию
@@ -280,7 +301,7 @@ switch (переменная) {
   - Строковые литералы: `case "hello"`
   - Числовые литералы: `case 42`
   - Переменные: `case *var_name*`
-- Каждый case автоматически завершается (нет необходимости в break)
+- `break;` - выход из switch (опционально, по умолчанию case не проваливается)
 - default блок опционален и должен быть в фигурных скобках
 
 Пример:
@@ -399,6 +420,36 @@ var int x = 20; // комментарий после кода
 - Весь код должен быть внутри функций
 - inpt можно использовать только при объявлении или изменении переменных
 - **Переменные уникальны на весь файл** - нельзя объявлять переменную с одинаковым именем дважды, даже в разных блоках if/elif/else или циклах
+
+## C Interop - Вызов C функций
+
+Kato поддерживает прямой вызов C функций через импорт .h файлов:
+
+```kato
+c.import stdio.h;
+c.import windows.h;
+
+func main() {
+    c.printf("Hello from C!\n");
+    return 0;
+}
+```
+
+Правила:
+- Импорт C заголовков: `c.import header.h;`
+- Вызов C функций: `c.function_name(args);`
+- C функции не конфликтуют с Kato функциями
+- Можно использовать любые C библиотеки (stdio, windows, wdk и т.д.)
+
+Пример с Windows API:
+```kato
+c.import windows.h;
+
+func main() {
+    c.MessageBoxA(0, "Hello from Kato!", "Message", 0);
+    return 0;
+}
+```
 
 ## Импорт функций
 
@@ -847,6 +898,25 @@ while (i < 10) {
 }
 ```
 
+**Loop control:**
+- `break;` - exit the loop
+- `continue;` - skip to next iteration
+
+Example:
+```
+var int i = 0;
+while (i < 10) {
+    i++;
+    if i == 5 {
+        continue;
+    }
+    if i == 8 {
+        break;
+    }
+    print(*i* "\n");
+}
+```
+
 ## Switch
 
 Kato supports switch statement for multiple choice:
@@ -855,9 +925,11 @@ Kato supports switch statement for multiple choice:
 switch (variable) {
     case value1
         // code
+        break;
     
     case value2
         // code
+        break;
     
     default {
         // default code
@@ -872,7 +944,7 @@ switch (variable) {
   - String literals: `case "hello"`
   - Numeric literals: `case 42`
   - Variables: `case *var_name*`
-- Each case automatically terminates (no need for break)
+- `break;` - exit switch (optional, cases don't fall through by default)
 - default block is optional and must be in curly braces
 
 Example:
@@ -991,6 +1063,36 @@ var int x = 20; // comment after code
 - All code must be inside functions
 - inpt can only be used when declaring or assigning variables
 - **Variables are unique per file** - you cannot declare a variable with the same name twice, even in different if/elif/else blocks or loops
+
+## C Interop - Calling C Functions
+
+Kato supports direct calling of C functions through importing .h files:
+
+```kato
+c.import stdio.h;
+c.import windows.h;
+
+func main() {
+    c.printf("Hello from C!\n");
+    return 0;
+}
+```
+
+Rules:
+- Import C headers: `c.import header.h;`
+- Call C functions: `c.function_name(args);`
+- C functions don't conflict with Kato functions
+- Can use any C libraries (stdio, windows, wdk, etc.)
+
+Example with Windows API:
+```kato
+c.import windows.h;
+
+func main() {
+    c.MessageBoxA(0, "Hello from Kato!", "Message", 0);
+    return 0;
+}
+```
 
 ## Function Import
 

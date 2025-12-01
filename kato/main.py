@@ -200,7 +200,7 @@ def main():
         
         preprocessor.check_unused_imports(optimized_ast, imported_functions, source_code)
         
-        compiler = CCompiler(optimized_ast, stdlib_imports=preprocessor.stdlib_imports)
+        compiler = CCompiler(optimized_ast, stdlib_imports=preprocessor.stdlib_imports, c_imports=preprocessor.c_imports)
         c_code = compiler.compile()
         
         if args.advanced_debug:

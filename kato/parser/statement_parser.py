@@ -3,7 +3,8 @@ from .ast.statements import (
     CallStatement, IfStatement, Assignment,
     WhileStatement, IncrementStatement, DecrementStatement,
     ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause,
-    ConvertStatement
+    ConvertStatement, CImportStatement, CCallStatement,
+    BreakStatement, ContinueStatement
 )
 from .errors import KatoSyntaxError
 
@@ -16,7 +17,11 @@ class StatementParser:
     def parse_statement(self):
         token = self.parser.current_token()
         
-        if token.type == "PRINT":
+        if token.type == "C_IMPORT":
+            return self.parse_c_import()
+        elif token.type == "C_CALL":
+            return self.parse_c_call()
+        elif token.type == "PRINT":
             return self.parse_print_statement()
         elif token.type == "RETURN":
             return self.parse_return_statement()
@@ -34,6 +39,10 @@ class StatementParser:
             return self.parse_switch_statement()
         elif token.type == "CONVERT":
             return self.parse_convert_statement()
+        elif token.type == "BREAK":
+            return self.parse_break()
+        elif token.type == "CONTINUE":
+            return self.parse_continue()
         elif token.type == "IDENTIFIER":
             next_token = self.parser.peek_token()
             if next_token and next_token.type == "PLUS_PLUS":
@@ -493,3 +502,50 @@ class StatementParser:
         self.parser.expect("SEMICOLON")
         
         return CallStatement(func_name, arguments)
+    
+    def parse_c_import(self):
+        self.parser.advance()
+        header_name = ""
+        
+        while self.parser.current_token() and self.parser.current_token().type != "SEMICOLON":
+            token = self.parser.current_token()
+            if token.type == "IDENTIFIER":
+                header_name += token.value
+            elif token.type == "DOT":
+                header_name += "."
+            elif token.type == "NUMBER":
+                header_name += str(token.value)
+            else:
+                break
+            self.parser.advance()
+        
+        self.parser.expect("SEMICOLON")
+        return CImportStatement(header_name)
+    
+    def parse_c_call(self):
+        func_token = self.parser.current_token()
+        func_name = func_token.value[2:]
+        self.parser.advance()
+        self.parser.expect("LPAREN")
+        
+        arguments = []
+        while self.parser.current_token() and self.parser.current_token().type != "RPAREN":
+            arguments.append(self.expr_parser.parse_expression())
+            
+            if self.parser.current_token() and self.parser.current_token().type == "COMMA":
+                self.parser.advance()
+        
+        self.parser.expect("RPAREN")
+        self.parser.expect("SEMICOLON")
+        
+        return CCallStatement(func_name, arguments)
+
+    def parse_break(self):
+        self.parser.advance()
+        self.parser.expect("SEMICOLON")
+        return BreakStatement()
+    
+    def parse_continue(self):
+        self.parser.advance()
+        self.parser.expect("SEMICOLON")
+        return ContinueStatement()
