@@ -2,12 +2,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <windows.h>
 
 
 int main() {
     srand(time(NULL));
-    int a = 20;
-    printf("%d", (a + 5));
-return 0;
+    MessageBoxA(0, "Hello from Kato!", "Message", 0);
+    return 0;
 }
 

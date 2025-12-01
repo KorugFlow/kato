@@ -1,5 +1,7 @@
-func main() {
-   var int a = 20;
-   print(a + 5);
-}
 
+c.import windows.h;
+
+func main() {
+    c.MessageBoxA(0, "Hello from Kato!", "Message", 0);
+    return 0;
+}

@@ -17,7 +17,12 @@ class Optimizer:
             else:
                 optimized_functions.append(function)
         
-        return Program(optimized_functions)
+        optimized_program = Program(optimized_functions)
+        
+        if hasattr(self.ast, 'c_imports'):
+            optimized_program.c_imports = self.ast.c_imports
+        
+        return optimized_program
     
     def optimize_main(self, function):
         optimized_body = []

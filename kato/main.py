@@ -31,7 +31,7 @@ def find_c_compiler():
     return None
 
 
-def compile_c_to_exe(c_file, output_file):
+def compile_c_to_exe(c_file, output_file, c_imports=None):
     
     compiler = find_c_compiler()
     
@@ -45,8 +45,12 @@ def compile_c_to_exe(c_file, output_file):
     try:
         if compiler == 'cl':
             cmd = [compiler, c_file, f'/Fe{output_file}']
+            if c_imports and 'windows.h' in c_imports:
+                cmd.append('user32.lib')
         else:
             cmd = [compiler, c_file, '-o', output_file]
+            if c_imports and 'windows.h' in c_imports:
+                cmd.extend(['-luser32', '-lgdi32'])
         
         result = subprocess.run(cmd, capture_output=True, text=True)
         
@@ -230,7 +234,7 @@ def main():
         else:
             output_file = output_name
         
-        compile_c_to_exe(str(c_file), output_file)
+        compile_c_to_exe(str(c_file), output_file, compiler.c_imports)
     
     except KatoSyntaxError as e:
         print(str(e))
