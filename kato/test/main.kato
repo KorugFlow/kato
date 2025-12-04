@@ -1,7 +1,5 @@
-
-c.import windows.h;
-
 func main() {
-    c.MessageBoxA(0, "Hello from Kato!", "Message", 0);
+    var string a = "hello";
+    print(*a*);
     return 0;
 }

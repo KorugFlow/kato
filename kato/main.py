@@ -12,58 +12,35 @@ from compiler.optimizer import Optimizer
 
 
 def find_c_compiler():
-    
-    compilers = ['gcc', 'clang', 'cl']
-    
-    for compiler in compilers:
-        try:
-            result = subprocess.run(
-                [compiler, '--version'],
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
-            if result.returncode == 0:
-                return compiler
-        except (FileNotFoundError, subprocess.TimeoutExpired):
-            continue
-    
+    tcc_path = Path(__file__).parent / 'tcc' / 'tcc.exe'
+    if tcc_path.exists():
+        return str(tcc_path)
     return None
 
 
 def compile_c_to_exe(c_file, output_file, c_imports=None):
-    
     compiler = find_c_compiler()
     
     if not compiler:
-        print("i need compiler")
-        print(f"ok: {c_file}")
+        print("TCC compiler not found at kato/tcc/tcc.exe")
         return False
     
     print(f"Using compiler: {compiler}")
     
     try:
-        if compiler == 'cl':
-            cmd = [compiler, c_file, f'/Fe{output_file}']
-            if c_imports and 'windows.h' in c_imports:
-                cmd.append('user32.lib')
-        else:
-            cmd = [compiler, c_file, '-o', output_file]
-            if c_imports and 'windows.h' in c_imports:
-                cmd.extend(['-luser32', '-lgdi32'])
-        
+        cmd = [compiler, c_file, '-o', output_file]
         result = subprocess.run(cmd, capture_output=True, text=True)
         
         if result.returncode == 0:
-            print(f"succesfly: {output_file}")
+            print(f"Successfully compiled: {output_file}")
             return True
         else:
-            print(f"fail! loser:")
+            print(f"Compilation failed:")
             print(result.stderr)
             return False
     
     except Exception as e:
-        print(f"erorr: {e}")
+        print(f"Error: {e}")
         return False
 
 
