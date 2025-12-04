@@ -64,6 +64,8 @@ class StatementParser:
     
     def parse_print_statement(self):
         print_token = self.parser.current_token()
+        line_num = print_token.line
+        source_line = self.parser.source_lines[line_num - 1].strip() if line_num <= len(self.parser.source_lines) else ""
         self.parser.expect("PRINT")
         self.parser.expect("LPAREN")
         
@@ -88,10 +90,15 @@ class StatementParser:
             )
         self.parser.expect("SEMICOLON")
         
-        return PrintStatement(values)
+        stmt = PrintStatement(values)
+        stmt.line_number = line_num
+        stmt.source_line = source_line
+        return stmt
     
     def parse_return_statement(self):
         return_token = self.parser.current_token()
+        line_num = return_token.line
+        source_line = self.parser.source_lines[line_num - 1].strip() if line_num <= len(self.parser.source_lines) else ""
         self.parser.expect("RETURN")
         
         value = self.expr_parser.parse_expression()
@@ -105,10 +112,15 @@ class StatementParser:
             )
         self.parser.expect("SEMICOLON")
         
-        return ReturnStatement(value)
+        stmt = ReturnStatement(value)
+        stmt.line_number = line_num
+        stmt.source_line = source_line
+        return stmt
     
     def parse_var_declaration(self):
         var_token = self.parser.current_token()
+        line_num = var_token.line
+        source_line = self.parser.source_lines[line_num - 1].strip() if line_num <= len(self.parser.source_lines) else ""
         self.parser.expect("VAR")
         
         type_token = self.parser.current_token()
@@ -146,10 +158,15 @@ class StatementParser:
             )
         self.parser.expect("SEMICOLON")
         
-        return VarDeclaration(var_type, name, value)
+        stmt = VarDeclaration(var_type, name, value)
+        stmt.line_number = line_num
+        stmt.source_line = source_line
+        return stmt
     
     def parse_call_statement(self):
         call_token = self.parser.current_token()
+        line_num = call_token.line
+        source_line = self.parser.source_lines[line_num - 1].strip() if line_num <= len(self.parser.source_lines) else ""
         self.parser.expect("CALL")
         
         func_name_token = self.parser.expect("IDENTIFIER")
@@ -189,7 +206,10 @@ class StatementParser:
             )
         self.parser.expect("SEMICOLON")
         
-        return CallStatement(func_name, arguments)
+        stmt = CallStatement(func_name, arguments)
+        stmt.line_number = line_num
+        stmt.source_line = source_line
+        return stmt
     
     def parse_if_statement(self):
         self.parser.expect("IF")
@@ -226,6 +246,8 @@ class StatementParser:
     
     def parse_assignment(self):
         name_token = self.parser.current_token()
+        line_num = name_token.line
+        source_line = self.parser.source_lines[line_num - 1].strip() if line_num <= len(self.parser.source_lines) else ""
         name = name_token.value
         
         if name not in self.parser.defined_variables:
@@ -250,7 +272,10 @@ class StatementParser:
             )
         self.parser.expect("SEMICOLON")
         
-        return Assignment(name, value)
+        stmt = Assignment(name, value)
+        stmt.line_number = line_num
+        stmt.source_line = source_line
+        return stmt
 
     def parse_while_statement(self):
         self.parser.expect("WHILE")
@@ -271,6 +296,8 @@ class StatementParser:
     
     def parse_increment(self):
         name_token = self.parser.current_token()
+        line_num = name_token.line
+        source_line = self.parser.source_lines[line_num - 1].strip() if line_num <= len(self.parser.source_lines) else ""
         name = name_token.value
         
         if name not in self.parser.defined_variables:
@@ -292,10 +319,15 @@ class StatementParser:
             )
         self.parser.expect("SEMICOLON")
         
-        return IncrementStatement(name)
+        stmt = IncrementStatement(name)
+        stmt.line_number = line_num
+        stmt.source_line = source_line
+        return stmt
     
     def parse_decrement(self):
         name_token = self.parser.current_token()
+        line_num = name_token.line
+        source_line = self.parser.source_lines[line_num - 1].strip() if line_num <= len(self.parser.source_lines) else ""
         name = name_token.value
         
         if name not in self.parser.defined_variables:
@@ -317,7 +349,10 @@ class StatementParser:
             )
         self.parser.expect("SEMICOLON")
         
-        return DecrementStatement(name)
+        stmt = DecrementStatement(name)
+        stmt.line_number = line_num
+        stmt.source_line = source_line
+        return stmt
 
     def parse_array_declaration(self):
         mass_token = self.parser.current_token()
@@ -370,6 +405,8 @@ class StatementParser:
     
     def parse_array_assignment(self):
         name_token = self.parser.current_token()
+        line_num = name_token.line
+        source_line = self.parser.source_lines[line_num - 1].strip() if line_num <= len(self.parser.source_lines) else ""
         name = name_token.value
         
         if name not in self.parser.defined_variables:
@@ -398,7 +435,10 @@ class StatementParser:
             )
         self.parser.expect("SEMICOLON")
         
-        return ArrayAssignment(name, index, value)
+        stmt = ArrayAssignment(name, index, value)
+        stmt.line_number = line_num
+        stmt.source_line = source_line
+        return stmt
     
     def parse_switch_statement(self):
         switch_token = self.parser.current_token()
@@ -471,6 +511,8 @@ class StatementParser:
     
     def parse_direct_call_statement(self):
         func_name_token = self.parser.current_token()
+        line_num = func_name_token.line
+        source_line = self.parser.source_lines[line_num - 1].strip() if line_num <= len(self.parser.source_lines) else ""
         func_name = func_name_token.value
         
         if func_name not in self.parser.defined_functions and func_name not in self.parser.builtin_functions:
@@ -501,7 +543,10 @@ class StatementParser:
             )
         self.parser.expect("SEMICOLON")
         
-        return CallStatement(func_name, arguments)
+        stmt = CallStatement(func_name, arguments)
+        stmt.line_number = line_num
+        stmt.source_line = source_line
+        return stmt
     
     def parse_c_import(self):
         self.parser.advance()
@@ -541,11 +586,23 @@ class StatementParser:
         return CCallStatement(func_name, arguments)
 
     def parse_break(self):
+        break_token = self.parser.current_token()
+        line_num = break_token.line
+        source_line = self.parser.source_lines[line_num - 1].strip() if line_num <= len(self.parser.source_lines) else ""
         self.parser.advance()
         self.parser.expect("SEMICOLON")
-        return BreakStatement()
+        stmt = BreakStatement()
+        stmt.line_number = line_num
+        stmt.source_line = source_line
+        return stmt
     
     def parse_continue(self):
+        continue_token = self.parser.current_token()
+        line_num = continue_token.line
+        source_line = self.parser.source_lines[line_num - 1].strip() if line_num <= len(self.parser.source_lines) else ""
         self.parser.advance()
         self.parser.expect("SEMICOLON")
-        return ContinueStatement()
+        stmt = ContinueStatement()
+        stmt.line_number = line_num
+        stmt.source_line = source_line
+        return stmt

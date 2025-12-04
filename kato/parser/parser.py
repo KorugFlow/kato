@@ -9,6 +9,7 @@ class Parser:
         self.tokens = tokens
         self.pos = 0
         self.source_code = source_code
+        self.source_lines = source_code.split('\n') if source_code else []
         self.defined_functions = set()
         self.builtin_functions = {"print", "random"}
         self.defined_variables = set()

@@ -17,10 +17,11 @@ class StatementCodegen:
         self.expr_codegen = expr_codegen
     
     def compile_statement(self, statement):
+        line_comment = f" // {statement.source_line}" if hasattr(statement, 'source_line') and statement.source_line else ""
         if isinstance(statement, BreakStatement):
-            return f'{self.compiler.indent()}break;\n'
+            return f'{self.compiler.indent()}break;{line_comment}\n'
         elif isinstance(statement, ContinueStatement):
-            return f'{self.compiler.indent()}continue;\n'
+            return f'{self.compiler.indent()}continue;{line_comment}\n'
         elif isinstance(statement, CImportStatement):
             return self.compile_c_import(statement)
         elif isinstance(statement, CCallStatement):
@@ -55,6 +56,7 @@ class StatementCodegen:
             raise ValueError(f"Unknown statement type: {type(statement).__name__}")
     
     def compile_print(self, statement):
+        line_comment = f" // {statement.source_line}" if hasattr(statement, 'source_line') and statement.source_line else ""
         values = statement.value if isinstance(statement.value, list) else [statement.value]
         
         format_parts = []
@@ -147,28 +149,30 @@ class StatementCodegen:
         
         if printf_args:
             args_str = ", ".join(printf_args)
-            return f'{self.compiler.indent()}printf("{escaped_string}", {args_str});\n'
+            return f'{self.compiler.indent()}printf("{escaped_string}", {args_str});{line_comment}\n'
         else:
-            return f'{self.compiler.indent()}printf("{escaped_string}");\n'
+            return f'{self.compiler.indent()}printf("{escaped_string}");{line_comment}\n'
     
     def compile_return(self, statement):
+        line_comment = f" // {statement.source_line}" if hasattr(statement, 'source_line') and statement.source_line else ""
         value = statement.value
         
         if isinstance(value, NumberLiteral):
-            return f'{self.compiler.indent()}return {value.value};\n'
+            return f'{self.compiler.indent()}return {value.value};{line_comment}\n'
         elif isinstance(value, FloatLiteral):
-            return f'{self.compiler.indent()}return (int){value.value};\n'
+            return f'{self.compiler.indent()}return (int){value.value};{line_comment}\n'
         elif isinstance(value, StringLiteral):
-            return f'{self.compiler.indent()}return 0;\n'
+            return f'{self.compiler.indent()}return 0;{line_comment}\n'
         elif isinstance(value, Identifier):
-            return f'{self.compiler.indent()}return {value.name};\n'
+            return f'{self.compiler.indent()}return {value.name};{line_comment}\n'
         elif isinstance(value, BinaryOp):
-            return f'{self.compiler.indent()}return {self.expr_codegen.compile_expr(value)};\n'
+            return f'{self.compiler.indent()}return {self.expr_codegen.compile_expr(value)};{line_comment}\n'
         else:
             
-            return f'{self.compiler.indent()}return {self.expr_codegen.compile_expr(value)};\n'
+            return f'{self.compiler.indent()}return {self.expr_codegen.compile_expr(value)};{line_comment}\n'
     
     def compile_var_declaration(self, statement):
+        line_comment = f" // {statement.source_line}" if hasattr(statement, 'source_line') and statement.source_line else ""
         var_type = statement.var_type
         var_name = statement.name
         var_value = statement.value
@@ -185,7 +189,7 @@ class StatementCodegen:
         
         if isinstance(var_value, InptCall):
             prompt = self.expr_codegen.compile_expr(var_value.prompt)
-            code = f'{self.compiler.indent()}{c_type} {var_name};\n'
+            code = f'{self.compiler.indent()}{c_type} {var_name}; {line_comment}\n'
             code += f'{self.compiler.indent()}printf({prompt});\n'
             
             if var_type == "int":
@@ -205,7 +209,7 @@ class StatementCodegen:
             source_expr = self.expr_codegen.compile_expr(var_value.expression)
             target_type = var_value.target_type
             
-            code = f'{self.compiler.indent()}{c_type} {var_name};\n'
+            code = f'{self.compiler.indent()}{c_type} {var_name}; {line_comment}\n'
             code += f'{self.compiler.indent()}{{\n'
             self.compiler.indent_level += 1
             
@@ -229,9 +233,10 @@ class StatementCodegen:
             return code
         else:
             c_value = self.expr_codegen.compile_expr(var_value, var_type)
-            return f'{self.compiler.indent()}{c_type} {var_name} = {c_value};\n'
+            return f'{self.compiler.indent()}{c_type} {var_name} = {c_value};{line_comment}\n'
     
     def compile_call(self, statement):
+        line_comment = f" // {statement.source_line}" if hasattr(statement, 'source_line') and statement.source_line else ""
         func_name = statement.func_name
         arguments = statement.arguments
         
@@ -240,9 +245,9 @@ class StatementCodegen:
             for arg in arguments:
                 compiled_args.append(self.expr_codegen.compile_expr(arg))
             args_str = ", ".join(compiled_args)
-            return f'{self.compiler.indent()}{func_name}({args_str});\n'
+            return f'{self.compiler.indent()}{func_name}({args_str});{line_comment}\n'
         
-        return f'{self.compiler.indent()}{func_name}();\n'
+        return f'{self.compiler.indent()}{func_name}();{line_comment}\n'
     
     def compile_if(self, statement):
         condition = self.expr_codegen.compile_expr(statement.condition)
@@ -282,7 +287,7 @@ class StatementCodegen:
         
         if isinstance(var_value, InptCall):
             prompt = self.expr_codegen.compile_expr(var_value.prompt)
-            code = f'{self.compiler.indent()}printf({prompt});\n'
+            code = f'{self.compiler.indent()}printf({prompt}); {line_comment}\n'
             
             if var_type == "int":
                 code += f'{self.compiler.indent()}scanf("%d", &{var_name});\n'
@@ -312,10 +317,12 @@ class StatementCodegen:
         return code
     
     def compile_increment(self, statement):
-        return f'{self.compiler.indent()}{statement.name}++;\n'
+        line_comment = f" // {statement.source_line}" if hasattr(statement, 'source_line') and statement.source_line else ""
+        return f'{self.compiler.indent()}{statement.name}++;{line_comment}\n'
     
     def compile_decrement(self, statement):
-        return f'{self.compiler.indent()}{statement.name}--;\n'
+        line_comment = f" // {statement.source_line}" if hasattr(statement, 'source_line') and statement.source_line else ""
+        return f'{self.compiler.indent()}{statement.name}--;{line_comment}\n'
 
     def compile_array_declaration(self, statement):
         array_type = statement.array_type
@@ -342,11 +349,12 @@ class StatementCodegen:
         return f'{self.compiler.indent()}{c_type} {array_name}[{array_size}] = {{{elements_str}}};\n'
     
     def compile_array_assignment(self, statement):
+        line_comment = f" // {statement.source_line}" if hasattr(statement, 'source_line') and statement.source_line else ""
         array_name = statement.name
         index = self.expr_codegen.compile_expr(statement.index)
         value = self.expr_codegen.compile_expr(statement.value)
         
-        return f'{self.compiler.indent()}{array_name}[{index}] = {value};\n'
+        return f'{self.compiler.indent()}{array_name}[{index}] = {value};{line_comment}\n'
     
     def compile_switch(self, statement):
         switch_expr = self.expr_codegen.compile_expr(statement.expression)
@@ -359,17 +367,21 @@ class StatementCodegen:
             code += f'{self.compiler.indent()}case {case_value}:\n'
             
             self.compiler.indent_level += 1
+            has_break = any(isinstance(stmt, BreakStatement) for stmt in case.body)
             for stmt in case.body:
                 code += self.compile_statement(stmt)
-            code += f'{self.compiler.indent()}break;\n'
+            if not has_break:
+                code += f'{self.compiler.indent()}break;\n'
             self.compiler.indent_level -= 1
         
         if statement.default_body:
             code += f'{self.compiler.indent()}default:\n'
             self.compiler.indent_level += 1
+            has_break = any(isinstance(stmt, BreakStatement) for stmt in statement.default_body)
             for stmt in statement.default_body:
                 code += self.compile_statement(stmt)
-            code += f'{self.compiler.indent()}break;\n'
+            if not has_break:
+                code += f'{self.compiler.indent()}break;\n'
             self.compiler.indent_level -= 1
         
         self.compiler.indent_level -= 1
