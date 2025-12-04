@@ -1,5 +1,20 @@
 func main() {
-    var string a = "hello";
-    print(*a*);
+    var int a = inpt("Enter a number 1 : ");
+    var int b = inpt("Enter a number 2 : ");
+    var char c = inpt("Enter a op : ");
+    switch (c) {
+        case '+'
+            print(*a* + *b*);
+            break;
+        case '-'
+            print(*a* - *b*);
+            break;
+        case '*'
+            print(*a* * *b*);
+            break;
+        case '/'
+            print(*a* / *b*);
+            break;
+    }
     return 0;
 }
