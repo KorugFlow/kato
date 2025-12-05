@@ -26,4 +26,5 @@ class tokens:
         "stop": "STOP",
         "for": "FOR",
         "find": "FIND",
+        "struct": "STRUCT",
     }

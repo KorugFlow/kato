@@ -4,7 +4,8 @@ from .ast.statements import (
     WhileStatement, IncrementStatement, DecrementStatement,
     ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause,
     ConvertStatement, CImportStatement, CCallStatement,
-    BreakStatement, ContinueStatement, InfStatement, StopStatement, ForStatement
+    BreakStatement, ContinueStatement, InfStatement, StopStatement, ForStatement,
+    StructVarDeclaration, StructFieldAssignment, PointerAssignment
 )
 from .errors import KatoSyntaxError
 
@@ -26,6 +27,9 @@ class StatementParser:
         elif token.type == "RETURN":
             return self.parse_return_statement()
         elif token.type == "VAR":
+            next_token = self.parser.peek_token()
+            if next_token and next_token.type == "IDENTIFIER" and next_token.value in self.parser.defined_structs:
+                return self.parse_struct_var_declaration()
             return self.parse_var_declaration()
         elif token.type == "MASS":
             return self.parse_array_declaration()
@@ -49,6 +53,8 @@ class StatementParser:
             return self.parse_stop()
         elif token.type == "FOR":
             return self.parse_for_statement()
+        elif token.type == "ASTERISK":
+            return self.parse_pointer_assignment()
         elif token.type == "IDENTIFIER":
             next_token = self.parser.peek_token()
             if next_token and next_token.type == "PLUS_PLUS":
@@ -57,6 +63,8 @@ class StatementParser:
                 return self.parse_decrement()
             elif next_token and next_token.type == "LBRACKET":
                 return self.parse_array_assignment()
+            elif next_token and next_token.type == "DOT":
+                return self.parse_struct_field_assignment()
             elif next_token and next_token.type == "LPAREN":
                 return self.parse_direct_call_statement()
             else:
@@ -138,6 +146,12 @@ class StatementParser:
             )
         var_type = type_token.value
         self.parser.advance()
+        
+        is_pointer = False
+        if self.parser.current_token() and self.parser.current_token().type == "ASTERISK":
+            is_pointer = True
+            var_type += "*"
+            self.parser.advance()
         
         name_token = self.parser.expect("IDENTIFIER")
         name = name_token.value
@@ -691,3 +705,89 @@ class StatementParser:
         self.parser.expect("RBRACE")
         
         return ForStatement(iterable, counter, condition, body)
+    
+    def parse_struct_var_declaration(self):
+        self.parser.expect("VAR")
+        struct_type_token = self.parser.expect("IDENTIFIER")
+        struct_type = struct_type_token.value
+        
+        if struct_type not in self.parser.defined_structs:
+            raise KatoSyntaxError(
+                f"Undefined struct '{struct_type}'",
+                struct_type_token.line, struct_type_token.column,
+                self.parser.source_code
+            )
+        
+        name_token = self.parser.expect("IDENTIFIER")
+        name = name_token.value
+        
+        if name in self.parser.defined_variables:
+            raise KatoSyntaxError(
+                f"Variable '{name}' is already defined",
+                name_token.line, name_token.column,
+                self.parser.source_code
+            )
+        
+        self.parser.defined_variables.add(name)
+        self.parser.expect("EQUALS")
+        self.parser.expect("LBRACE")
+        
+        field_values = {}
+        while self.parser.current_token() and self.parser.current_token().type != "RBRACE":
+            field_name_token = self.parser.expect("IDENTIFIER")
+            field_name = field_name_token.value
+            
+            if field_name not in self.parser.defined_structs[struct_type]:
+                raise KatoSyntaxError(
+                    f"Field '{field_name}' does not exist in struct '{struct_type}'",
+                    field_name_token.line, field_name_token.column,
+                    self.parser.source_code
+                )
+            
+            if self.parser.current_token() and self.parser.current_token().type == "COLON":
+                self.parser.advance()
+            else:
+                raise KatoSyntaxError(
+                    f"Expected ':' after field name",
+                    field_name_token.line, field_name_token.column,
+                    self.parser.source_code
+                )
+            
+            field_values[field_name] = self.expr_parser.parse_expression()
+            
+            if self.parser.current_token() and self.parser.current_token().type == "COMMA":
+                self.parser.advance()
+        
+        self.parser.expect("RBRACE")
+        self.parser.expect("SEMICOLON")
+        return StructVarDeclaration(struct_type, name, field_values)
+    
+    def parse_struct_field_assignment(self):
+        struct_name_token = self.parser.current_token()
+        struct_name = struct_name_token.value
+        
+        if struct_name not in self.parser.defined_variables:
+            raise KatoSyntaxError(
+                f"Variable '{struct_name}' is not defined",
+                struct_name_token.line, struct_name_token.column,
+                self.parser.source_code
+            )
+        
+        self.parser.advance()
+        self.parser.expect("DOT")
+        field_name_token = self.parser.expect("IDENTIFIER")
+        field_name = field_name_token.value
+        self.parser.expect("EQUALS")
+        value = self.expr_parser.parse_expression()
+        self.parser.expect("SEMICOLON")
+        return StructFieldAssignment(struct_name, field_name, value)
+
+    def parse_pointer_assignment(self):
+        self.parser.expect("ASTERISK")
+        pointer_token = self.parser.expect("IDENTIFIER")
+        pointer_name = pointer_token.value
+        self.parser.expect("ASTERISK")
+        self.parser.expect("EQUALS")
+        value = self.expr_parser.parse_expression()
+        self.parser.expect("SEMICOLON")
+        return PointerAssignment(pointer_name, value)

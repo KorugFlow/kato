@@ -5,8 +5,9 @@ from parser.ast import (
     ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause,
     ConvertStatement, CImportStatement, CCallStatement,
     BreakStatement, ContinueStatement, InfStatement, StopStatement, ForStatement,
+    StructVarDeclaration, StructFieldAssignment, PointerAssignment,
     StringLiteral, NumberLiteral, FloatLiteral, Identifier, BinaryOp, InptCall, ArrayAccess, CharLiteral,
-    ConvertExpression, FunctionCall
+    ConvertExpression, FunctionCall, StructAccess
 )
 import re
 
@@ -58,6 +59,12 @@ class StatementCodegen:
             return f'{self.compiler.indent()}break;{line_comment}\n'
         elif isinstance(statement, ForStatement):
             return self.compile_for(statement)
+        elif isinstance(statement, StructVarDeclaration):
+            return self.compile_struct_var_declaration(statement)
+        elif isinstance(statement, StructFieldAssignment):
+            return self.compile_struct_field_assignment(statement)
+        elif isinstance(statement, PointerAssignment):
+            return self.compile_pointer_assignment(statement)
         else:
             raise ValueError(f"Unknown statement type: {type(statement).__name__}")
     
@@ -72,26 +79,58 @@ class StatementCodegen:
             if isinstance(value, StringLiteral):
                 string_value = value.value
                 
-                var_pattern = r'\*(\w+)\*'
+                var_pattern = r'\*([\w\.]+)\*'
                 vars_in_string = re.findall(var_pattern, string_value)
                 
                 if vars_in_string:
                     format_string = string_value
                     
-                    for var_name in vars_in_string:
-                        if var_name in self.compiler.variables:
-                            var_type = self.compiler.variables[var_name]
+                    for var_expr in vars_in_string:
+                        if '.' in var_expr:
+                            parts = var_expr.split('.')
+                            struct_name = parts[0]
+                            field_name = parts[1]
+                            if struct_name in self.compiler.variables:
+                                struct_type = self.compiler.variables[struct_name]
+                                if struct_type in self.compiler.struct_definitions:
+                                    field_type = self.compiler.struct_definitions[struct_type].get(field_name)
+                                    if field_type == "int":
+                                        format_string = format_string.replace(f"*{var_expr}*", "%d", 1)
+                                    elif field_type == "float":
+                                        format_string = format_string.replace(f"*{var_expr}*", "%f", 1)
+                                    elif field_type == "char":
+                                        format_string = format_string.replace(f"*{var_expr}*", "%c", 1)
+                                    elif field_type == "string":
+                                        format_string = format_string.replace(f"*{var_expr}*", "%s", 1)
+                                    printf_args.append(f"{struct_name}.{field_name}")
+                        elif var_expr in self.compiler.variables:
+                            var_type = self.compiler.variables[var_expr]
                             
-                            if var_type == "int":
-                                format_string = format_string.replace(f"*{var_name}*", "%d", 1)
-                            elif var_type == "float":
-                                format_string = format_string.replace(f"*{var_name}*", "%f", 1)
-                            elif var_type == "char":
-                                format_string = format_string.replace(f"*{var_name}*", "%c", 1)
-                            elif var_type == "string":
-                                format_string = format_string.replace(f"*{var_name}*", "%s", 1)
-                            
-                            printf_args.append(var_name)
+                            if var_type.endswith('*'):
+                                base_type = var_type[:-1]
+                                if base_type == "int":
+                                    format_string = format_string.replace(f"*{var_expr}*", "%d", 1)
+                                    printf_args.append(f"(*{var_expr})")
+                                elif base_type == "float":
+                                    format_string = format_string.replace(f"*{var_expr}*", "%f", 1)
+                                    printf_args.append(f"(*{var_expr})")
+                                elif base_type == "char":
+                                    format_string = format_string.replace(f"*{var_expr}*", "%c", 1)
+                                    printf_args.append(f"(*{var_expr})")
+                                elif base_type == "string":
+                                    format_string = format_string.replace(f"*{var_expr}*", "%s", 1)
+                                    printf_args.append(f"(*{var_expr})")
+                            else:
+                                if var_type == "int":
+                                    format_string = format_string.replace(f"*{var_expr}*", "%d", 1)
+                                elif var_type == "float":
+                                    format_string = format_string.replace(f"*{var_expr}*", "%f", 1)
+                                elif var_type == "char":
+                                    format_string = format_string.replace(f"*{var_expr}*", "%c", 1)
+                                elif var_type == "string":
+                                    format_string = format_string.replace(f"*{var_expr}*", "%s", 1)
+                                
+                                printf_args.append(var_expr)
                     
                     format_parts.append(format_string)
                 else:
@@ -106,15 +145,23 @@ class StatementCodegen:
                 var_name = value.name
                 if var_name in self.compiler.variables:
                     var_type = self.compiler.variables[var_name]
-                    if var_type == "int":
+                    if var_type.endswith('*'):
+                        format_parts.append("%p")
+                        printf_args.append(f"(void*){var_name}")
+                    elif var_type == "int":
                         format_parts.append("%d")
+                        printf_args.append(var_name)
                     elif var_type == "float":
                         format_parts.append("%f")
+                        printf_args.append(var_name)
                     elif var_type == "char":
                         format_parts.append("%c")
+                        printf_args.append(var_name)
                     elif var_type == "string":
                         format_parts.append("%s")
-                    printf_args.append(var_name)
+                        printf_args.append(var_name)
+                    else:
+                        printf_args.append(var_name)
                 else:
                     format_parts.append("%s")
                     printf_args.append(var_name)
@@ -189,7 +236,11 @@ class StatementCodegen:
             "int": "int",
             "float": "float",
             "char": "char",
-            "string": "char*"
+            "string": "char*",
+            "int*": "int*",
+            "float*": "float*",
+            "char*": "char*",
+            "string*": "char**"
         }
         c_type = c_type_map.get(var_type, "int")
         
@@ -529,3 +580,29 @@ class StatementCodegen:
         code += f'{self.compiler.indent()}}}\n'
         
         return code
+
+    def compile_struct_var_declaration(self, statement):
+        struct_type = statement.struct_type
+        var_name = statement.name
+        field_values = statement.field_values
+        
+        self.compiler.variables[var_name] = struct_type
+        
+        code = f'{self.compiler.indent()}{struct_type} {var_name} = {{'
+        field_codes = []
+        for field_name, field_value in field_values.items():
+            field_codes.append(f'.{field_name} = {self.expr_codegen.compile_expr(field_value)}')
+        code += ', '.join(field_codes)
+        code += '};\n'
+        return code
+    
+    def compile_struct_field_assignment(self, statement):
+        struct_name = statement.struct_name
+        field_name = statement.field_name
+        value = self.expr_codegen.compile_expr(statement.value)
+        return f'{self.compiler.indent()}{struct_name}.{field_name} = {value};\n'
+
+    def compile_pointer_assignment(self, statement):
+        pointer_name = statement.pointer
+        value = self.expr_codegen.compile_expr(statement.value)
+        return f'{self.compiler.indent()}(*{pointer_name}) = {value};\n'

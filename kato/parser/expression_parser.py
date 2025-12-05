@@ -1,7 +1,7 @@
 from .ast.expressions import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
     Identifier, BinaryOp, InptCall, ArrayAccess, FunctionCall,
-    ConvertExpression, FindCall
+    ConvertExpression, FindCall, StructAccess, AddressOf, Dereference
 )
 from .errors import KatoSyntaxError
 
@@ -102,7 +102,11 @@ class ExpressionParser:
             name = token.value
             self.parser.advance()
             
-            if self.parser.current_token() and self.parser.current_token().type == "LPAREN":
+            if self.parser.current_token() and self.parser.current_token().type == "DOT":
+                self.parser.advance()
+                field_token = self.parser.expect("IDENTIFIER")
+                return StructAccess(name, field_token.value)
+            elif self.parser.current_token() and self.parser.current_token().type == "LPAREN":
                 if name not in self.parser.defined_functions and name not in self.parser.builtin_functions:
                     raise KatoSyntaxError(
                         f"Unknown function '{name}'",
@@ -160,20 +164,33 @@ class ExpressionParser:
                 token.line, token.column,
                 self.parser.source_code
             )
-        elif token.type == "ASTERISK":
+        elif token.type == "AMPERSAND":
             self.parser.advance()
-            var_token = self.parser.expect("IDENTIFIER")
-            
-            if self.parser.current_token() and self.parser.current_token().type == "LBRACKET":
-                name = var_token.value
-                self.parser.advance()
-                index = self.parse_expression()
-                self.parser.expect("RBRACKET")
-                self.parser.expect("ASTERISK")
-                return ArrayAccess(name, index)
-            
-            self.parser.expect("ASTERISK")
-            return Identifier(var_token.value)
+            operand = self.parse_primary()
+            return AddressOf(operand)
+        elif token.type == "ASTERISK":
+            next_token = self.parser.peek_token()
+            if next_token and next_token.type == "IDENTIFIER":
+                peek_after = self.parser.peek_token(2)
+                if peek_after and peek_after.type == "ASTERISK":
+                    self.parser.advance()
+                    var_token = self.parser.expect("IDENTIFIER")
+                    
+                    if self.parser.current_token() and self.parser.current_token().type == "LBRACKET":
+                        name = var_token.value
+                        self.parser.advance()
+                        index = self.parse_expression()
+                        self.parser.expect("RBRACKET")
+                        self.parser.expect("ASTERISK")
+                        return ArrayAccess(name, index)
+                    
+                    self.parser.expect("ASTERISK")
+                    return Dereference(Identifier(var_token.value))
+            raise KatoSyntaxError(
+                f"Unexpected '*' in expression",
+                token.line, token.column,
+                self.parser.source_code
+            )
         elif token.type == "MINUS":
             self.parser.advance()
             next_token = self.parser.current_token()

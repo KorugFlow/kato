@@ -1,7 +1,7 @@
 from parser.ast import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
     Identifier, BinaryOp, InptCall, ArrayAccess, FunctionCall,
-    ConvertExpression, FindCall
+    ConvertExpression, FindCall, StructAccess, AddressOf, Dereference
 )
 
 
@@ -67,5 +67,13 @@ class ExpressionCodegen:
             target_code = self.compile_expr(expr.target)
             pattern_code = self.compile_expr(expr.pattern)
             return f"kato_find({target_code}, {pattern_code})"
+        elif isinstance(expr, StructAccess):
+            return f"{expr.struct_name}.{expr.field_name}"
+        elif isinstance(expr, AddressOf):
+            operand_code = self.compile_expr(expr.operand)
+            return f"&{operand_code}"
+        elif isinstance(expr, Dereference):
+            operand_code = self.compile_expr(expr.operand)
+            return f"(*{operand_code})"
         else:
             return "0"

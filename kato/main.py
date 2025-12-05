@@ -186,6 +186,9 @@ def main():
         for func_name, return_type in imported_function_return_types.items():
             parser_obj.function_return_types[func_name] = return_type
         
+        for struct_name, struct_fields in preprocessor.imported_structs.items():
+            parser_obj.defined_structs[struct_name] = struct_fields
+        
         if "filesystem" in preprocessor.stdlib_imports:
             from compiler.std.filesystem import FILESYSTEM_FUNCTIONS
             for func_name, func_info in FILESYSTEM_FUNCTIONS.items():
@@ -202,6 +205,14 @@ def main():
         
         for func_name, func in imported_functions.items():
             ast.functions.insert(0, func)
+        
+        if preprocessor.imported_structs:
+            if not hasattr(ast, 'structs'):
+                ast.structs = []
+            for struct_name, struct_fields in preprocessor.imported_structs.items():
+                from parser.ast import StructDeclaration
+                struct_decl = StructDeclaration(struct_name, struct_fields)
+                ast.structs.insert(0, struct_decl)
         
         if args.debug or args.advanced_debug:
             print("\n" + "="*60)

@@ -1,0 +1,22 @@
+func main() {
+    var int x = 10;
+    var int* px = &x;
+    
+    print("x = *x*\n");
+    print("Address of x: ");
+    print(px);
+    print("\n");
+    print("Value via pointer = *px*\n");
+    
+    *px* = 20;
+    print("x after change = *x*\n");
+    
+    mass int arr = {1, 2, 3};
+    var int* pa = &arr[0];
+    print("Address of arr[0]: ");
+    print(pa);
+    print("\n");
+    print("arr[0] via pointer = *pa*\n");
+    
+    return 0;
+}

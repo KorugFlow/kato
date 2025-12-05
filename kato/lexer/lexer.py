@@ -194,6 +194,9 @@ class Lexer:
             elif char == ',':
                 self.tokens.append(Token("COMMA", char, start_line, start_column))
                 self.advance()
+            elif char == ':':
+                self.tokens.append(Token("COLON", char, start_line, start_column))
+                self.advance()
             elif char == '*':
                 self.tokens.append(Token("ASTERISK", char, start_line, start_column))
                 self.advance()
@@ -253,7 +256,8 @@ class Lexer:
                     self.advance()
                     self.advance()
                 else:
-                    raise SyntaxError(f"Dude, what even is '{char}' at {start_line}:{start_column}? I have no idea what you want from me here.")
+                    self.tokens.append(Token("AMPERSAND", char, start_line, start_column))
+                    self.advance()
             elif char == '|':
                 if self.peek_char() == '|':
                     self.tokens.append(Token("OR", "||", start_line, start_column))

@@ -11,6 +11,7 @@ class CCompiler:
         self.uses_conversion = False
         self.uses_find = False
         self.function_return_types = {}
+        self.struct_definitions = {}
         
         self.expr_codegen = ExpressionCodegen(self)
         self.stmt_codegen = StatementCodegen(self, self.expr_codegen)
@@ -43,6 +44,10 @@ class CCompiler:
         for function in self.ast.functions:
             check_for_find(function)
         
+        if hasattr(self.ast, 'structs'):
+            for struct in self.ast.structs:
+                self.struct_definitions[struct.name] = struct.fields
+        
         for function in self.ast.functions:
             if function.params:
                 function.param_types = self.func_codegen.infer_param_types(function, self.ast)
@@ -69,6 +74,14 @@ class CCompiler:
             c_code += f"#include <{c_header}>\n"
         
         c_code += "\n"
+        
+        if hasattr(self.ast, 'structs'):
+            for struct in self.ast.structs:
+                c_code += f"typedef struct {{\n"
+                for field_name, field_type in struct.fields.items():
+                    c_type = {"int": "int", "float": "float", "char": "char", "string": "char*"}[field_type]
+                    c_code += f"    {c_type} {field_name};\n"
+                c_code += f"}} {struct.name};\n\n"
         
         if self.uses_find:
             c_code += "int kato_find(void* target, void* pattern);\n\n"

@@ -26,6 +26,16 @@ class Identifier(ASTNode):
         self.name = name
 
 
+class AddressOf(ASTNode):
+    def __init__(self, operand):
+        self.operand = operand
+
+
+class Dereference(ASTNode):
+    def __init__(self, operand):
+        self.operand = operand
+
+
 class ArrayAccess(ASTNode):
     def __init__(self, name, index):
         self.name = name
@@ -60,3 +70,9 @@ class FindCall(ASTNode):
     def __init__(self, target, pattern):
         self.target = target
         self.pattern = pattern
+
+
+class StructAccess(ASTNode):
+    def __init__(self, struct_name, field_name):
+        self.struct_name = struct_name
+        self.field_name = field_name

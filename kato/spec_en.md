@@ -169,6 +169,140 @@ func main() {
 - Returns -1 if pattern is not found
 - Search is case-sensitive
 
+## Structures
+
+Kato supports structures for grouping related data:
+
+```
+struct StructName {
+    type field1;
+    type field2;
+}
+```
+
+Declaring a struct variable:
+```
+var StructName name = {
+    field1: value1,
+    field2: value2
+};
+```
+
+Accessing fields:
+```
+print(*name.field1*);
+```
+
+Modifying fields:
+```
+name.field1 = newValue;
+```
+
+Example:
+```kato
+struct Human {
+    int age;
+    string name;
+    float height;
+}
+
+func main() {
+    var Human bob = {
+        age: 20,
+        name: "Bob",
+        height: 1.78
+    };
+    
+    print("Name: *bob.name*\n");
+    print("Age: *bob.age*\n");
+    
+    bob.name = "Biba";
+    print("New name: *bob.name*\n");
+    
+    return 0;
+}
+```
+
+**IMPORTANT:**
+- Structures are declared outside functions
+- Struct name 'c' is reserved for C interop
+- Struct fields can be of types: int, float, char, string
+- Cannot duplicate field names within a struct
+
+## Pointers
+
+Kato supports pointers for working with memory addresses:
+
+### Pointer Declaration
+
+```
+var type* name;
+```
+
+Examples:
+```kato
+var int* p;
+var float* fptr;
+var char* cptr;
+var string* sptr;
+```
+
+### Address Assignment
+
+To make a pointer point to a variable, use the `&` operator:
+
+```kato
+var int x = 42;
+var int* p = &x;
+```
+
+### Accessing Value Through Pointer
+
+To dereference a pointer, use `*ptr*`:
+
+```kato
+print(*p*);
+```
+
+### Modifying Value Through Pointer
+
+```kato
+*p* = 50;
+```
+
+### Complete Example
+
+```kato
+func main() {
+    var int x = 10;
+    var int* px = &x;
+    
+    print("x = *x*\n");
+    print("via pointer = *px*\n");
+    
+    *px* = 20;
+    print("x after change = *x*\n");
+    
+    return 0;
+}
+```
+
+### Pointers and Arrays
+
+You can point to an array by name or get the address of an element:
+
+```kato
+mass int arr = {1, 2, 3};
+var int* pa = &arr[0];
+print(*pa*);
+```
+
+**IMPORTANT:**
+- Pointers work like in C
+- Dereference through `*ptr*` in expressions and assignments
+- Take address through `&variable`
+- Pointers to all basic types are supported
+
 ## Conditionals
 
 Kato supports conditional statements:
@@ -553,9 +687,11 @@ func main() {
 }
 ```
 
-## Function Import
+## Function and Struct Import
 
-Kato supports importing functions from other files via .kh (Kato Header) files:
+Kato supports importing functions and structures from other files via .kh (Kato Header) files:
+
+### Function Import
 
 **welcome.kato:**
 ```kato
@@ -579,11 +715,46 @@ func main() {
 }
 ```
 
+### Struct Import
+
+**person.kato:**
+```kato
+struct Person {
+    string name;
+    int age;
+}
+
+func main() {
+    return 0;
+}
+```
+
+**person.kh:**
+```
+$export struct Person from person.kato
+```
+
+**main.kato:**
+```kato
+import person.kh;
+
+func main() {
+    var Person user = {
+        name: "Alice",
+        age: 25
+    };
+    
+    print("User: *user.name*, Age: *user.age*\n");
+    return 0;
+}
+```
+
 Rules:
 - All paths are relative
 - Cannot import `main` function
-- Cannot duplicate function names
+- Cannot duplicate function and struct names
 - If file not found - error
+- Struct export syntax: `$export struct StructName from file.kato`
 
 ## Standard Library (stdlib)
 

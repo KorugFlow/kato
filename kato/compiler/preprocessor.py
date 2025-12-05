@@ -16,6 +16,7 @@ class Preprocessor:
         self.processed_files = set()
         self.imported_functions = {}
         self.imported_function_return_types = {}
+        self.imported_structs = {}
         self.all_functions = []
         self.stdlib_imports = set()
         self.c_imports = set()
@@ -103,19 +104,26 @@ class Preprocessor:
                 
                 if ' from ' in export_line:
                     parts = export_line.split(' from ')
-                    func_name = parts[0].strip()
+                    export_item = parts[0].strip()
                     file_name = parts[1].strip()
-                    exports.append((func_name, file_name))
+                    
+                    if export_item.startswith('struct '):
+                        struct_name = export_item[7:].strip()
+                        exports.append(('struct', struct_name, file_name))
+                    else:
+                        exports.append(('func', export_item, file_name))
                 else:
                     raise KatoSyntaxError(
-                        f"Invalid export syntax in {kh_path}. Use: $export func_name from file.kato",
+                        f"Invalid export syntax in {kh_path}. Use: $export func_name from file.kato or $export struct StructName from file.kato",
                         1, 1
                     )
         
         return exports
     
     def process_export(self, export_info, base_dir):
-        func_name, export_file = export_info
+        export_type = export_info[0]
+        export_name = export_info[1]
+        export_file = export_info[2]
         kato_path = base_dir / export_file
         
         if not kato_path.exists():
@@ -124,7 +132,7 @@ class Preprocessor:
                 1, 1
             )
         
-        file_key = f"{kato_path}:{func_name}"
+        file_key = f"{kato_path}:{export_name}"
         if file_key in self.processed_files:
             return
         
@@ -142,36 +150,55 @@ class Preprocessor:
         parser = Parser(tokens, kato_content)
         ast = parser.parse()
         
-        found = False
-        for func in ast.functions:
-            if func.name == func_name:
-                found = True
-                
-                if func.name == "main":
-                    raise KatoSyntaxError(
-                        f"Cannot import 'main' function from {export_file}",
-                        1, 1
-                    )
-                
-                if func.name in self.imported_functions:
-                    raise KatoSyntaxError(
-                        f"Function '{func.name}' is already imported",
-                        1, 1
-                    )
-                
-                self.imported_functions[func.name] = func
-                self.all_functions.append(func)
-                
-                return_type = self.infer_return_type(func.body)
-                self.imported_function_return_types[func.name] = return_type
-                
-                break
-        
-        if not found:
-            raise KatoSyntaxError(
-                f"Function '{func_name}' not found in {export_file}",
-                1, 1
-            )
+        if export_type == 'struct':
+            found = False
+            if hasattr(ast, 'structs'):
+                for struct in ast.structs:
+                    if struct.name == export_name:
+                        found = True
+                        if export_name in self.imported_structs:
+                            raise KatoSyntaxError(
+                                f"Struct '{export_name}' is already imported",
+                                1, 1
+                            )
+                        self.imported_structs[export_name] = struct.fields
+                        break
+            if not found:
+                raise KatoSyntaxError(
+                    f"Struct '{export_name}' not found in {export_file}",
+                    1, 1
+                )
+        else:
+            found = False
+            for func in ast.functions:
+                if func.name == export_name:
+                    found = True
+                    
+                    if func.name == "main":
+                        raise KatoSyntaxError(
+                            f"Cannot import 'main' function from {export_file}",
+                            1, 1
+                        )
+                    
+                    if func.name in self.imported_functions:
+                        raise KatoSyntaxError(
+                            f"Function '{func.name}' is already imported",
+                            1, 1
+                        )
+                    
+                    self.imported_functions[func.name] = func
+                    self.all_functions.append(func)
+                    
+                    return_type = self.infer_return_type(func.body)
+                    self.imported_function_return_types[func.name] = return_type
+                    
+                    break
+            
+            if not found:
+                raise KatoSyntaxError(
+                    f"Function '{export_name}' not found in {export_file}",
+                    1, 1
+                )
     
     def check_unused_imports(self, ast, imported_functions, source_code):
         used_stdlib = set()

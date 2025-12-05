@@ -5,12 +5,13 @@ from .statements import (
     WhileStatement, IncrementStatement, DecrementStatement,
     ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause,
     ConvertStatement, CImportStatement, CCallStatement,
-    BreakStatement, ContinueStatement, InfStatement, StopStatement, ForStatement
+    BreakStatement, ContinueStatement, InfStatement, StopStatement, ForStatement,
+    StructDeclaration, StructVarDeclaration, StructFieldAssignment, PointerAssignment
 )
 from .expressions import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
     Identifier, BinaryOp, InptCall, ArrayAccess, FunctionCall,
-    ConvertExpression, FindCall
+    ConvertExpression, FindCall, StructAccess, AddressOf, Dereference
 )
 
 __all__ = [
@@ -21,7 +22,8 @@ __all__ = [
     'ArrayDeclaration', 'ArrayAssignment', 'SwitchStatement', 'CaseClause',
     'ConvertStatement', 'CImportStatement', 'CCallStatement',
     'BreakStatement', 'ContinueStatement', 'InfStatement', 'StopStatement', 'ForStatement',
+    'StructDeclaration', 'StructVarDeclaration', 'StructFieldAssignment', 'PointerAssignment',
     'StringLiteral', 'NumberLiteral', 'FloatLiteral', 'CharLiteral',
     'Identifier', 'BinaryOp', 'InptCall', 'ArrayAccess', 'FunctionCall',
-    'ConvertExpression', 'FindCall'
+    'ConvertExpression', 'FindCall', 'StructAccess', 'AddressOf', 'Dereference'
 ]

@@ -22,6 +22,9 @@ class Optimizer:
         if hasattr(self.ast, 'c_imports'):
             optimized_program.c_imports = self.ast.c_imports
         
+        if hasattr(self.ast, 'structs'):
+            optimized_program.structs = self.ast.structs
+        
         return optimized_program
     
     def optimize_main(self, function):

@@ -133,3 +133,29 @@ class ForStatement(ASTNode):
         self.counter = counter
         self.condition = condition
         self.body = body
+
+
+class StructDeclaration(ASTNode):
+    def __init__(self, name, fields):
+        self.name = name
+        self.fields = fields
+
+
+class StructVarDeclaration(ASTNode):
+    def __init__(self, struct_type, name, field_values):
+        self.struct_type = struct_type
+        self.name = name
+        self.field_values = field_values
+
+
+class StructFieldAssignment(ASTNode):
+    def __init__(self, struct_name, field_name, value):
+        self.struct_name = struct_name
+        self.field_name = field_name
+        self.value = value
+
+
+class PointerAssignment(ASTNode):
+    def __init__(self, pointer, value):
+        self.pointer = pointer
+        self.value = value

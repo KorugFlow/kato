@@ -13,6 +13,7 @@ class Parser:
         self.defined_functions = set()
         self.builtin_functions = {"print", "random", "find"}
         self.defined_variables = set()
+        self.defined_structs = {}
         self.function_return_types = {}
         
         self.expr_parser = ExpressionParser(self)
@@ -52,10 +53,13 @@ class Parser:
     def parse(self):
         functions = []
         c_imports = []
+        structs = []
         
         while self.current_token() and self.current_token().type != "EOF":
             if self.current_token().type == "C_IMPORT":
                 c_imports.append(self.stmt_parser.parse_c_import())
+            elif self.current_token().type == "STRUCT":
+                structs.append(self.parse_struct())
             elif self.current_token().type == "FUNCTION":
                 functions.append(self.parse_function())
             else:
@@ -76,6 +80,7 @@ class Parser:
         
         program = Program(functions)
         program.c_imports = c_imports
+        program.structs = structs
         return program
     
     def parse_function(self):
@@ -143,6 +148,58 @@ class Parser:
         self.function_return_types[name] = return_type
         
         return Function(name, params, body)
+    
+    def parse_struct(self):
+        from .ast import StructDeclaration
+        
+        self.expect("STRUCT")
+        name_token = self.expect("IDENTIFIER")
+        name = name_token.value
+        
+        if name == "c":
+            raise KatoSyntaxError(
+                f"Struct name 'c' is reserved for C interop",
+                name_token.line, name_token.column,
+                self.source_code
+            )
+        
+        if name in self.defined_structs:
+            raise KatoSyntaxError(
+                f"Struct '{name}' is already defined",
+                name_token.line, name_token.column,
+                self.source_code
+            )
+        
+        self.expect("LBRACE")
+        fields = {}
+        
+        while self.current_token() and self.current_token().type != "RBRACE":
+            field_type_token = self.current_token()
+            if field_type_token.type not in ["INT", "FLOAT", "CHAR", "STRING_TYPE"]:
+                raise KatoSyntaxError(
+                    f"Expected type (int, float, char, string), got '{field_type_token.value}'",
+                    field_type_token.line, field_type_token.column,
+                    self.source_code
+                )
+            field_type = field_type_token.value
+            self.advance()
+            
+            field_name_token = self.expect("IDENTIFIER")
+            field_name = field_name_token.value
+            
+            if field_name in fields:
+                raise KatoSyntaxError(
+                    f"Field '{field_name}' is already defined in struct '{name}'",
+                    field_name_token.line, field_name_token.column,
+                    self.source_code
+                )
+            
+            fields[field_name] = field_type
+            self.expect("SEMICOLON")
+        
+        self.expect("RBRACE")
+        self.defined_structs[name] = fields
+        return StructDeclaration(name, fields)
     
     def infer_return_type(self, body):
         from .ast import ReturnStatement, StringLiteral, CharLiteral, FloatLiteral, Identifier
