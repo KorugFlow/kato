@@ -28,8 +28,19 @@ def convert_c_to_kato(c_source_code, debug=False):
         generator = KatoGenerator()
         kato_code = generator.generate(kato_ast)
         
+        
+        imports = []
+        if hasattr(converter.stmt_converter, 'used_stdlib'):
+            for lib in sorted(converter.stmt_converter.used_stdlib):
+                imports.append(f"import {lib};\n")
+        
+        if imports:
+            kato_code = ''.join(imports) + '\n' + kato_code
+        
         if debug:
             print(f"Generated code length: {len(kato_code)}")
+            if imports:
+                print(f"Auto-imported libraries: {', '.join(converter.stmt_converter.used_stdlib)}")
         
         return kato_code
     

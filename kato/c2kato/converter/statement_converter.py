@@ -19,6 +19,7 @@ class StatementConverter:
         self.expr_converter = expr_converter
         self.printf_converter = PrintfConverter()
         self.last_printf_output = None
+        self.used_stdlib = set()  
     
     def convert_statement(self, c_stmt):
         if c_stmt is None:
@@ -42,6 +43,23 @@ class StatementConverter:
             elif c_stmt.name == "scanf":
                 result = self.convert_scanf(c_stmt)
                 return result
+            
+            elif c_stmt.name == "system":
+                self.used_stdlib.add("os")
+                from parser.ast import CallStatement
+                arguments = [self.expr_converter.convert_expression(arg) for arg in c_stmt.arguments] if c_stmt.arguments else []
+                return CallStatement("os_system", arguments)
+            
+            elif c_stmt.name == "getpid":
+                self.used_stdlib.add("os")
+                from parser.ast import CallStatement
+                return CallStatement("os_get_pid", [])
+           
+            elif c_stmt.name == "remove":
+                self.used_stdlib.add("filesystem")
+                from parser.ast import CallStatement
+                arguments = [self.expr_converter.convert_expression(arg) for arg in c_stmt.arguments] if c_stmt.arguments else []
+                return CallStatement("file_delete", arguments)
             else:
                 from parser.ast import CallStatement
                 arguments = [self.expr_converter.convert_expression(arg) for arg in c_stmt.arguments] if c_stmt.arguments else []
