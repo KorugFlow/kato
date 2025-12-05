@@ -125,3 +125,11 @@ class InfStatement(ASTNode):
 
 class StopStatement(ASTNode):
     pass
+
+
+class ForStatement(ASTNode):
+    def __init__(self, iterable, counter, condition, body):
+        self.iterable = iterable
+        self.counter = counter
+        self.condition = condition
+        self.body = body

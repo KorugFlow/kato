@@ -24,4 +24,5 @@ class tokens:
         "continue": "CONTINUE",
         "inf": "INF",
         "stop": "STOP",
+        "for": "FOR",
     }

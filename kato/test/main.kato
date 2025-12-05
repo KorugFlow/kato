@@ -1,15 +1,9 @@
+
+
 func main() {
-    var int count = 0;
-    
-    inf {
-        print("Count: *count*\n");
-        count++;
-        
-        if count == 5 {
-            stop;
-        }
+    mass int arr = {10, 20, 30};
+    for (arr; var int i = 0; i < 3) {
+        print(*arr[i]* "\n");
     }
-    
-    print("Loop finished!\n");
-    return 0;
 }
+зусюь

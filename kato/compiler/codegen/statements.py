@@ -4,7 +4,7 @@ from parser.ast import (
     WhileStatement, IncrementStatement, DecrementStatement,
     ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause,
     ConvertStatement, CImportStatement, CCallStatement,
-    BreakStatement, ContinueStatement, InfStatement, StopStatement,
+    BreakStatement, ContinueStatement, InfStatement, StopStatement, ForStatement,
     StringLiteral, NumberLiteral, FloatLiteral, Identifier, BinaryOp, InptCall, ArrayAccess, CharLiteral,
     ConvertExpression, FunctionCall
 )
@@ -56,6 +56,8 @@ class StatementCodegen:
             return self.compile_inf(statement)
         elif isinstance(statement, StopStatement):
             return f'{self.compiler.indent()}break;{line_comment}\n'
+        elif isinstance(statement, ForStatement):
+            return self.compile_for(statement)
         else:
             raise ValueError(f"Unknown statement type: {type(statement).__name__}")
     
@@ -500,4 +502,30 @@ class StatementCodegen:
             code += self.compile_statement(stmt)
         self.compiler.indent_level -= 1
         code += f'{self.compiler.indent()}}}\n'
+        return code
+    
+    def compile_for(self, statement):
+        iterable = statement.iterable
+        counter = statement.counter
+        condition = self.expr_codegen.compile_expr(statement.condition)
+        
+        code = ""
+        
+        if isinstance(counter, VarDeclaration):
+            counter_name = counter.name
+            code += self.compile_var_declaration(counter)
+        else:
+            counter_name = counter
+        
+        code += f'{self.compiler.indent()}while ({condition}) {{\n'
+        self.compiler.indent_level += 1
+        
+        for stmt in statement.body:
+            code += self.compile_statement(stmt)
+        
+        code += f'{self.compiler.indent()}{counter_name}++;\n'
+        
+        self.compiler.indent_level -= 1
+        code += f'{self.compiler.indent()}}}\n'
+        
         return code

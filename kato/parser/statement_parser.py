@@ -4,7 +4,7 @@ from .ast.statements import (
     WhileStatement, IncrementStatement, DecrementStatement,
     ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause,
     ConvertStatement, CImportStatement, CCallStatement,
-    BreakStatement, ContinueStatement, InfStatement, StopStatement
+    BreakStatement, ContinueStatement, InfStatement, StopStatement, ForStatement
 )
 from .errors import KatoSyntaxError
 
@@ -47,6 +47,8 @@ class StatementParser:
             return self.parse_inf_statement()
         elif token.type == "STOP":
             return self.parse_stop()
+        elif token.type == "FOR":
+            return self.parse_for_statement()
         elif token.type == "IDENTIFIER":
             next_token = self.parser.peek_token()
             if next_token and next_token.type == "PLUS_PLUS":
@@ -633,3 +635,59 @@ class StatementParser:
         stmt.line_number = line_num
         stmt.source_line = source_line
         return stmt
+    
+    def parse_for_statement(self):
+        self.parser.expect("FOR")
+        self.parser.expect("LPAREN")
+        
+        iterable_token = self.parser.current_token()
+        if iterable_token.type != "IDENTIFIER":
+            raise KatoSyntaxError(
+                f"Expected array or variable name, got '{iterable_token.value}'",
+                iterable_token.line, iterable_token.column,
+                self.parser.source_code
+            )
+        iterable = iterable_token.value
+        self.parser.advance()
+        
+        self.parser.expect("SEMICOLON")
+        
+        counter = None
+        if self.parser.current_token().type == "VAR":
+            self.parser.advance()
+            counter_type_token = self.parser.current_token()
+            if counter_type_token.type not in ["INT", "FLOAT", "CHAR", "STRING_TYPE"]:
+                raise KatoSyntaxError(
+                    f"Expected counter type, got '{counter_type_token.value}'",
+                    counter_type_token.line, counter_type_token.column,
+                    self.parser.source_code
+                )
+            counter_type = counter_type_token.value
+            self.parser.advance()
+            
+            counter_name_token = self.parser.expect("IDENTIFIER")
+            counter_name = counter_name_token.value
+            
+            self.parser.expect("EQUALS")
+            counter_value = self.expr_parser.parse_expression()
+            
+            counter = VarDeclaration(counter_type, counter_name, counter_value)
+            self.parser.defined_variables.add(counter_name)
+        else:
+            counter_token = self.parser.expect("IDENTIFIER")
+            counter = counter_token.value
+        
+        self.parser.expect("SEMICOLON")
+        
+        condition = self.expr_parser.parse_comparison()
+        
+        self.parser.expect("RPAREN")
+        self.parser.expect("LBRACE")
+        
+        body = []
+        while self.parser.current_token() and self.parser.current_token().type != "RBRACE":
+            body.append(self.parse_statement())
+        
+        self.parser.expect("RBRACE")
+        
+        return ForStatement(iterable, counter, condition, body)
