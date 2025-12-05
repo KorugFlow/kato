@@ -153,8 +153,15 @@ def main():
         
         if "filesystem" in preprocessor.stdlib_imports:
             from compiler.std.filesystem import FILESYSTEM_FUNCTIONS
-            for func_name in FILESYSTEM_FUNCTIONS.keys():
+            for func_name, func_info in FILESYSTEM_FUNCTIONS.items():
                 parser_obj.builtin_functions.add(func_name)
+                parser_obj.function_return_types[func_name] = func_info["return_type"]
+        
+        if "os" in preprocessor.stdlib_imports:
+            from compiler.std.os import OS_FUNCTIONS
+            for func_name, func_info in OS_FUNCTIONS.items():
+                parser_obj.builtin_functions.add(func_name)
+                parser_obj.function_return_types[func_name] = func_info["return_type"]
         
         ast = parser_obj.parse()
         

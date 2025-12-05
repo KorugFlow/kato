@@ -572,6 +572,97 @@ func main() {
 }
 ```
 
+### os - Работа с процессами
+
+Для работы с процессами импортируйте библиотеку os:
+
+```kato
+import os;
+```
+
+Доступные функции:
+
+**os_kill(pid)** - Завершает процесс по PID
+- Параметры: `int pid` - идентификатор процесса
+- Возвращает: `int` - 1 при успехе, 0 при ошибке
+
+```kato
+import os;
+
+func main() {
+    var int result = os_kill(1234);
+    if result == 1 {
+        print("Process terminated\n");
+    } else {
+        print("Failed to terminate\n");
+    }
+    return 0;
+}
+```
+
+**os_list_processes()** - Возвращает список всех запущенных процессов
+- Параметры: нет
+- Возвращает: `string` - список PID процессов (каждый на новой строке)
+
+```kato
+import os;
+
+func main() {
+    var string processes = os_list_processes();
+    print("Running processes:\n*processes*");
+    return 0;
+}
+```
+
+**os_run(path)** - Запускает исполняемый файл по указанному пути
+- Параметры: `string path` - путь к .exe файлу
+- Возвращает: `int` - 1 при успехе, 0 при ошибке
+
+```kato
+import os;
+
+func main() {
+    var int result = os_run("C:\\Windows\\notepad.exe");
+    if result == 1 {
+        print("Program started\n");
+    }
+    return 0;
+}
+```
+
+**os_process_exists(pid)** - Проверяет, существует ли процесс с указанным PID
+- Параметры: `int pid` - идентификатор процесса
+- Возвращает: `int` - 1 если процесс существует и активен, 0 если нет
+
+```kato
+import os;
+
+func main() {
+    var int pid = 1234;
+    var int exists = os_process_exists(pid);
+    if exists == 1 {
+        print("Process is running\n");
+    } else {
+        print("Process not found\n");
+    }
+    return 0;
+}
+```
+
+**os_get_pid()** - Возвращает PID текущего процесса
+- Параметры: нет
+- Возвращает: `int` - PID текущего процесса
+
+```kato
+import os;
+
+func main() {
+    var int my_pid = os_get_pid();
+    print("My PID: *my_pid*\n");
+    return 0;
+}
+```
+
 ## c2kato - Транспилятор из C в Kato
 
 Kato включает транспилятор из C в Kato:
@@ -1211,6 +1302,97 @@ func main() {
     if result == 1 {
         print("File deleted\n");
     }
+    return 0;
+}
+```
+
+### os - Process Management
+
+To work with processes, import the os library:
+
+```kato
+import os;
+```
+
+Available functions:
+
+**os_kill(pid)** - Terminates a process by PID
+- Parameters: `int pid` - process identifier
+- Returns: `int` - 1 on success, 0 on error
+
+```kato
+import os;
+
+func main() {
+    var int result = os_kill(1234);
+    if result == 1 {
+        print("Process terminated\n");
+    } else {
+        print("Failed to terminate\n");
+    }
+    return 0;
+}
+```
+
+**os_list_processes()** - Returns a list of all running processes
+- Parameters: none
+- Returns: `string` - list of process PIDs (each on a new line)
+
+```kato
+import os;
+
+func main() {
+    var string processes = os_list_processes();
+    print("Running processes:\n*processes*");
+    return 0;
+}
+```
+
+**os_run(path)** - Runs an executable file at the specified path
+- Parameters: `string path` - path to .exe file
+- Returns: `int` - 1 on success, 0 on error
+
+```kato
+import os;
+
+func main() {
+    var int result = os_run("C:\\Windows\\notepad.exe");
+    if result == 1 {
+        print("Program started\n");
+    }
+    return 0;
+}
+```
+
+**os_process_exists(pid)** - Checks if a process with the specified PID exists
+- Parameters: `int pid` - process identifier
+- Returns: `int` - 1 if process exists and is active, 0 if not
+
+```kato
+import os;
+
+func main() {
+    var int pid = 1234;
+    var int exists = os_process_exists(pid);
+    if exists == 1 {
+        print("Process is running\n");
+    } else {
+        print("Process not found\n");
+    }
+    return 0;
+}
+```
+
+**os_get_pid()** - Returns the PID of the current process
+- Parameters: none
+- Returns: `int` - PID of the current process
+
+```kato
+import os;
+
+func main() {
+    var int my_pid = os_get_pid();
+    print("My PID: *my_pid*\n");
     return 0;
 }
 ```

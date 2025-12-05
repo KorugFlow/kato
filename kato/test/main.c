@@ -24,19 +24,15 @@ int main() {
         case '+':
             printf("%d", (a + b)); // print(*a* + *b*);
             break; // break;
-            break;
         case '-':
             printf("%d", (a - b)); // print(*a* - *b*);
             break; // break;
-            break;
         case '*':
             printf("%d", (a * b)); // print(*a* * *b*);
             break; // break;
-            break;
         case '/':
             printf("%d", (a / b)); // print(*a* / *b*);
             break; // break;
-            break;
     }
     return 0; // return 0;
 }

@@ -4,7 +4,8 @@ from parser.errors import KatoSyntaxError, KatoWarning
 from parser.ast import CallStatement, IfStatement, WhileStatement, PrintStatement, ReturnStatement, VarDeclaration, Assignment, BinaryOp, InptCall, FunctionCall
 
 STDLIBS = {
-    "filesystem": "compiler.std.filesystem"
+    "filesystem": "compiler.std.filesystem",
+    "os": "compiler.std.os"
 }
 
 
@@ -181,6 +182,9 @@ class Preprocessor:
             if stdlib_name == "filesystem":
                 from compiler.std.filesystem import FILESYSTEM_FUNCTIONS
                 stdlib_functions[stdlib_name] = FILESYSTEM_FUNCTIONS
+            elif stdlib_name == "os":
+                from compiler.std.os import OS_FUNCTIONS
+                stdlib_functions[stdlib_name] = OS_FUNCTIONS
         
         def check_expr(expr):
             if expr is None:

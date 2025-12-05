@@ -41,6 +41,12 @@ class CCompiler:
         c_code += "#include <stdlib.h>\n"
         c_code += "#include <time.h>\n"
         
+        if "os" in self.stdlib_imports:
+            c_code += "#include <windows.h>\n"
+            c_code += "#include <tlhelp32.h>\n"
+            c_code += "#include <psapi.h>\n"
+            c_code += "#include <tlhelp32.h>\n"
+        
         for c_header in self.c_imports:
             c_code += f"#include <{c_header}>\n"
         
@@ -49,6 +55,10 @@ class CCompiler:
         if "filesystem" in self.stdlib_imports:
             from .std.filesystem import get_filesystem_functions
             c_code += get_filesystem_functions() + "\n"
+        
+        if "os" in self.stdlib_imports:
+            from .std.os import get_os_functions
+            c_code += get_os_functions() + "\n"
         
         for function in self.ast.functions:
             if function.name != "main":
