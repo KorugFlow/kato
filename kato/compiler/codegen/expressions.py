@@ -1,7 +1,7 @@
 from parser.ast import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
     Identifier, BinaryOp, InptCall, ArrayAccess, FunctionCall,
-    ConvertExpression
+    ConvertExpression, FindCall
 )
 
 
@@ -62,5 +62,10 @@ class ExpressionCodegen:
                 return f"{expr.name}({args})"
         elif isinstance(expr, ConvertExpression):
             return f"__convert_temp__"
+        elif isinstance(expr, FindCall):
+            self.compiler.uses_find = True
+            target_code = self.compile_expr(expr.target)
+            pattern_code = self.compile_expr(expr.pattern)
+            return f"kato_find({target_code}, {pattern_code})"
         else:
             return "0"

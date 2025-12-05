@@ -11,7 +11,7 @@ class Parser:
         self.source_code = source_code
         self.source_lines = source_code.split('\n') if source_code else []
         self.defined_functions = set()
-        self.builtin_functions = {"print", "random"}
+        self.builtin_functions = {"print", "random", "find"}
         self.defined_variables = set()
         self.function_return_types = {}
         

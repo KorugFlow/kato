@@ -1,7 +1,7 @@
 from .ast.expressions import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
     Identifier, BinaryOp, InptCall, ArrayAccess, FunctionCall,
-    ConvertExpression
+    ConvertExpression, FindCall
 )
 from .errors import KatoSyntaxError
 
@@ -174,6 +174,21 @@ class ExpressionParser:
             
             self.parser.expect("ASTERISK")
             return Identifier(var_token.value)
+        elif token.type == "MINUS":
+            self.parser.advance()
+            next_token = self.parser.current_token()
+            if next_token.type == "NUMBER":
+                self.parser.advance()
+                return NumberLiteral(-next_token.value)
+            elif next_token.type == "FLOAT_NUMBER":
+                self.parser.advance()
+                return FloatLiteral(-next_token.value)
+            else:
+                raise KatoSyntaxError(
+                    f"Expected number after '-', got '{next_token.value}'",
+                    next_token.line, next_token.column,
+                    self.parser.source_code
+                )
         elif token.type == "LPAREN":
             self.parser.advance()
             expr = self.parse_expression()
@@ -185,6 +200,23 @@ class ExpressionParser:
             prompt = self.parse_expression()
             self.parser.expect("RPAREN")
             return InptCall(prompt)
+        elif token.type == "FIND":
+            self.parser.advance()
+            self.parser.expect("LPAREN")
+            target_token = self.parser.current_token()
+            target = self.parse_expression()
+            
+            if isinstance(target, Identifier) and target.name not in self.parser.defined_variables:
+                raise KatoSyntaxError(
+                    f"Undefined variable '{target.name}' in find()",
+                    target_token.line, target_token.column,
+                    self.parser.source_code
+                )
+            
+            self.parser.expect("COMMA")
+            pattern = self.parse_expression()
+            self.parser.expect("RPAREN")
+            return FindCall(target, pattern)
         elif token.type == "CONVERT":
             self.parser.advance()
             expr = self.parse_primary()

@@ -1,0 +1,23 @@
+func main() {
+    var string text = "Hello World";
+    var int pos = find(text, "World");
+    
+    if pos != -1 {
+        print("Found 'World' at position: *pos*\n");
+    } else {
+        print("Not found\n");
+    }
+    
+    var string data = "abcdefgh";
+    var int idx = find(data, "cd");
+    print("Found 'cd' at index: *idx*\n");
+    
+    var int notFound = find(data, "xyz");
+    print("Search for 'xyz': *notFound*\n");
+    
+    var string sentence = "The quick brown fox";
+    var int foxPos = find(sentence, "fox");
+    print("Found 'fox' at: *foxPos*\n");
+    
+    return 0;
+}

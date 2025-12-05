@@ -131,6 +131,44 @@ func main() {
 - Both arguments must be integers
 - The random number generator is automatically initialized in the main() function
 
+## find Function
+
+The find function searches for a pattern in a string or array and returns the index of the first match:
+
+```
+var int index = find(target, pattern);
+```
+
+Parameters:
+- `target` - string or array to search in
+- `pattern` - pattern to search for (string or character)
+
+Returns: `int` - index of first match or -1 if not found
+
+Example:
+```kato
+func main() {
+    var string text = "Hello World";
+    var int pos = find(text, "World");
+    if pos != -1 {
+        print("Found at position: *pos*\n");
+    } else {
+        print("Not found\n");
+    }
+    
+    var string data = "abcdef";
+    var int idx = find(data, "cd");
+    print("Index: *idx*\n");
+    
+    return 0;
+}
+```
+
+**IMPORTANT:**
+- The function requires exactly 2 arguments (target, pattern)
+- Returns -1 if pattern is not found
+- Search is case-sensitive
+
 ## Conditionals
 
 Kato supports conditional statements:

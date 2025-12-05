@@ -54,3 +54,9 @@ class ConvertExpression(ASTNode):
     def __init__(self, expression, target_type):
         self.expression = expression
         self.target_type = target_type
+
+
+class FindCall(ASTNode):
+    def __init__(self, target, pattern):
+        self.target = target
+        self.pattern = pattern

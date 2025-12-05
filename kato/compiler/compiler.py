@@ -9,6 +9,7 @@ class CCompiler:
         self.stdlib_imports = stdlib_imports or set()
         self.c_imports = c_imports or set()
         self.uses_conversion = False
+        self.uses_find = False
         self.function_return_types = {}
         
         self.expr_codegen = ExpressionCodegen(self)
@@ -22,9 +23,25 @@ class CCompiler:
         return self.function_return_types.get(func_name, "int")
     
     def compile(self):
+        from parser.ast import FindCall
+        
         if hasattr(self.ast, 'c_imports'):
             for c_import in self.ast.c_imports:
                 self.c_imports.add(c_import.header_name)
+        
+        def check_for_find(obj):
+            if isinstance(obj, FindCall):
+                self.uses_find = True
+            elif hasattr(obj, '__dict__'):
+                for value in obj.__dict__.values():
+                    if isinstance(value, list):
+                        for item in value:
+                            check_for_find(item)
+                    else:
+                        check_for_find(value)
+        
+        for function in self.ast.functions:
+            check_for_find(function)
         
         for function in self.ast.functions:
             if function.params:
@@ -53,6 +70,9 @@ class CCompiler:
         
         c_code += "\n"
         
+        if self.uses_find:
+            c_code += "int kato_find(void* target, void* pattern);\n\n"
+        
         if "filesystem" in self.stdlib_imports:
             from .std.filesystem import get_filesystem_functions
             c_code += get_filesystem_functions() + "\n"
@@ -70,5 +90,27 @@ class CCompiler:
         for function in self.ast.functions:
             c_code += self.func_codegen.compile_function(function)
             c_code += "\n"
+        
+        if self.uses_find:
+            c_code += "int kato_find(void* target, void* pattern) {\n"
+            c_code += "    char* t = (char*)target;\n"
+            c_code += "    char* p = (char*)pattern;\n"
+            c_code += "    if (!t || !p) return -1;\n"
+            c_code += "    int t_len = 0, p_len = 0;\n"
+            c_code += "    while (t[t_len]) t_len++;\n"
+            c_code += "    while (p[p_len]) p_len++;\n"
+            c_code += "    if (p_len == 0) return 0;\n"
+            c_code += "    for (int i = 0; i <= t_len - p_len; i++) {\n"
+            c_code += "        int match = 1;\n"
+            c_code += "        for (int j = 0; j < p_len; j++) {\n"
+            c_code += "            if (t[i + j] != p[j]) {\n"
+            c_code += "                match = 0;\n"
+            c_code += "                break;\n"
+            c_code += "            }\n"
+            c_code += "        }\n"
+            c_code += "        if (match) return i;\n"
+            c_code += "    }\n"
+            c_code += "    return -1;\n"
+            c_code += "}\n\n"
         
         return c_code

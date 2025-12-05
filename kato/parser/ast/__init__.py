@@ -10,7 +10,7 @@ from .statements import (
 from .expressions import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
     Identifier, BinaryOp, InptCall, ArrayAccess, FunctionCall,
-    ConvertExpression
+    ConvertExpression, FindCall
 )
 
 __all__ = [
@@ -23,5 +23,5 @@ __all__ = [
     'BreakStatement', 'ContinueStatement', 'InfStatement', 'StopStatement', 'ForStatement',
     'StringLiteral', 'NumberLiteral', 'FloatLiteral', 'CharLiteral',
     'Identifier', 'BinaryOp', 'InptCall', 'ArrayAccess', 'FunctionCall',
-    'ConvertExpression'
+    'ConvertExpression', 'FindCall'
 ]

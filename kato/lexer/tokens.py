@@ -25,4 +25,5 @@ class tokens:
         "inf": "INF",
         "stop": "STOP",
         "for": "FOR",
+        "find": "FIND",
     }
