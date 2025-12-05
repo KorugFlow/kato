@@ -35,6 +35,9 @@ class CStatementParser:
         elif token.type == "SCANF":
             return self.parse_scanf_statement()
         elif token.type == "IDENTIFIER":
+            similar = self.parser._find_similar_keyword(token.value)
+            if similar:
+                raise C2KatoError(f"Unknown identifier '{token.value}' (did you mean '{similar}'?)", token.line, token.column)
             return self.parse_assignment_or_expression()
         elif token.type in ["RBRACE", "SEMICOLON"]:
             return None
@@ -105,6 +108,7 @@ class CStatementParser:
             if name in declared_names:
                 raise C2KatoError(f"Redeclaration of variable '{name}' in the same statement", name_token.line, name_token.column)
             declared_names.add(name)
+            self.parser.declared_variables.add(name)
             
             if self.parser.current_token() and self.parser.current_token().type == "LBRACKET":
                 self.parser.advance()
@@ -165,7 +169,14 @@ class CStatementParser:
         if not self.parser.current_token():
             raise C2KatoError("Expected condition in if statement")
         
+        condition_start = self.parser.pos
         condition = self.expr_parser.parse_expression()
+        
+        if self.parser.pos > condition_start:
+            check_token = self.parser.tokens[condition_start]
+            if check_token.type == "IDENTIFIER" and self.parser.current_token() and self.parser.current_token().type == "EQUALS":
+                var_name = check_token.value
+                raise C2KatoError(f"Assignment in condition (use '==' for comparison, not '=')", check_token.line, check_token.column)
         
         self.parser.expect("RPAREN")
         

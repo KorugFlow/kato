@@ -12,6 +12,7 @@ class CParser:
         self.pos = 0
         self.declared_functions = {}
         self.current_function = None
+        self.declared_variables = set()
         
         self.expr_parser = CExpressionParser(self)
         self.stmt_parser = CStatementParser(self, self.expr_parser)
@@ -51,10 +52,39 @@ class CParser:
                 result = self.parse_function_or_declaration()
                 if result is not None:
                     declarations.append(result)
+            elif token.type == "IDENTIFIER":
+                similar = self._find_similar_keyword(token.value)
+                if similar:
+                    raise C2KatoError(f"Unknown identifier '{token.value}' at top level (did you mean '{similar}'?)", token.line, token.column)
+                else:
+                    raise C2KatoError(f"Unexpected token at top level: {token.type}", token.line, token.column)
             else:
                 raise C2KatoError(f"Unexpected token at top level: {token.type}", token.line, token.column)
         
         return CProgram(declarations)
+    
+    def _find_similar_keyword(self, word):
+        keywords = ["return", "int", "float", "char", "void", "if", "else", "while", "for", "switch", "case", "break", "continue"]
+        for kw in keywords:
+            if self._levenshtein_distance(word.lower(), kw) <= 2:
+                return kw
+        return None
+    
+    def _levenshtein_distance(self, s1, s2):
+        if len(s1) < len(s2):
+            return self._levenshtein_distance(s2, s1)
+        if len(s2) == 0:
+            return len(s1)
+        previous_row = range(len(s2) + 1)
+        for i, c1 in enumerate(s1):
+            current_row = [i + 1]
+            for j, c2 in enumerate(s2):
+                insertions = previous_row[j + 1] + 1
+                deletions = current_row[j] + 1
+                substitutions = previous_row[j] + (c1 != c2)
+                current_row.append(min(insertions, deletions, substitutions))
+            previous_row = current_row
+        return previous_row[-1]
     
     def skip_preprocessor(self):
         self.advance()
@@ -163,6 +193,9 @@ class CParser:
         
         self.expect("LBRACE")
         self.current_function = {"name": name, "return_type": return_type}
+        self.declared_variables = set()
+        for param_type, param_name in params:
+            self.declared_variables.add(param_name)
         
         body = []
         while self.current_token() and self.current_token().type != "RBRACE":

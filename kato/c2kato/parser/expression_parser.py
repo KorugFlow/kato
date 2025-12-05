@@ -94,6 +94,10 @@ class CExpressionParser:
             return CChar(token.value)
         elif token.type == "IDENTIFIER":
             name = token.value
+            
+            if name not in self.parser.declared_variables and name not in self.parser.declared_functions:
+                raise C2KatoError(f"Undeclared variable '{name}'", token.line, token.column)
+            
             self.parser.advance()
             
             if self.parser.current_token() and self.parser.current_token().type == "LPAREN":
