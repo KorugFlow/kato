@@ -75,8 +75,24 @@ class StatementConverter:
             return IfStatement(condition, if_body, [], else_body)
         
         elif isinstance(c_stmt, CWhileStatement):
+            from parser.ast import NumberLiteral, InfStatement
+            from ..ast import CNumber
+            
             condition = self.expr_converter.convert_expression(c_stmt.condition)
             body = [self.convert_statement(s) for s in c_stmt.body if s]
+            
+            
+            is_infinite = False
+            if isinstance(condition, NumberLiteral) and condition.value == 1:
+                is_infinite = True
+            elif isinstance(c_stmt.condition, CNumber) and c_stmt.condition.value == 1:
+                is_infinite = True
+            elif isinstance(c_stmt.condition, str) and c_stmt.condition.lower() in ['1', 'true']:
+                is_infinite = True
+            
+            if is_infinite:
+                return InfStatement(body)
+            
             return WhileStatement(condition, body)
         
         elif isinstance(c_stmt, CForStatement):

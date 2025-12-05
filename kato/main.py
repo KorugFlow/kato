@@ -12,9 +12,24 @@ from compiler.optimizer import Optimizer
 
 
 def find_c_compiler():
+    
+    system_compilers = ['gcc', 'clang', 'cl']
+    
+    for compiler in system_compilers:
+        try:
+            result = subprocess.run([compiler, '--version'], capture_output=True, text=True, timeout=2)
+            if result.returncode == 0:
+                print(f"Found system compiler: {compiler}")
+                return compiler
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            continue
+    
+    
     tcc_path = Path(__file__).parent / 'tcc' / 'tcc.exe'
     if tcc_path.exists():
+        print("Using built-in TCC compiler")
         return str(tcc_path)
+    
     return None
 
 
@@ -22,16 +37,22 @@ def compile_c_to_exe(c_file, output_file, c_imports=None, stdlib_imports=None):
     compiler = find_c_compiler()
     
     if not compiler:
-        print("TCC compiler not found at kato/tcc/tcc.exe")
+        print("No C compiler found (gcc, clang, cl, or TCC)")
         return False
     
-    print(f"Using compiler: {compiler}")
-    
     try:
-        cmd = [compiler, c_file, '-o', output_file]
         
-        if stdlib_imports and "os" in stdlib_imports:
-            cmd.extend(['-ladvapi32', '-lshell32'])
+        is_tcc = 'tcc' in compiler.lower()
+        is_msvc = compiler == 'cl'
+        
+        if is_msvc:
+            cmd = [compiler, c_file, f'/Fe{output_file}']
+            if stdlib_imports and "os" in stdlib_imports:
+                cmd.extend(['advapi32.lib', 'shell32.lib'])
+        else:
+            cmd = [compiler, c_file, '-o', output_file]
+            if stdlib_imports and "os" in stdlib_imports:
+                cmd.extend(['-ladvapi32', '-lshell32'])
         
         result = subprocess.run(cmd, capture_output=True, text=True)
         

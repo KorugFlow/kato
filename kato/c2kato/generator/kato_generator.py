@@ -4,7 +4,7 @@ from parser.ast import (
     ReturnStatement, IncrementStatement, DecrementStatement,
     PrintStatement, CallStatement, SwitchStatement, CaseClause,
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
-    Identifier, BinaryOp, ArrayAccess, InptCall
+    Identifier, BinaryOp, ArrayAccess, InptCall, InfStatement, StopStatement
 )
 from .formatter import KatoFormatter
 
@@ -84,6 +84,17 @@ class KatoGenerator:
             code += "\n"
             return code
         
+        elif isinstance(stmt, InfStatement):
+            code = f"{self.indent()}inf {{\n"
+            
+            self.indent_level += 1
+            for s in stmt.body:
+                code += self.generate_statement(s)
+            self.indent_level -= 1
+            
+            code += f"{self.indent()}}}\n"
+            return code
+        
         elif isinstance(stmt, WhileStatement):
             condition_str = self.generate_expression(stmt.condition)
             
@@ -109,6 +120,9 @@ class KatoGenerator:
         
         elif isinstance(stmt, DecrementStatement):
             return f"{self.indent()}{stmt.name}--;\n"
+        
+        elif isinstance(stmt, StopStatement):
+            return f"{self.indent()}stop;\n"
         
         elif isinstance(stmt, PrintStatement):
             values = stmt.value if isinstance(stmt.value, list) else [stmt.value]
