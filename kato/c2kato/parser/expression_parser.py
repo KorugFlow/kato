@@ -70,6 +70,9 @@ class CExpressionParser:
     def parse_primary(self):
         token = self.parser.current_token()
         
+        if not token:
+            raise C2KatoError("Unexpected end of file in expression")
+        
         if token.type == "AMPERSAND":
             self.parser.advance()
             expr = self.parse_primary()
@@ -115,10 +118,16 @@ class CExpressionParser:
         
         arguments = []
         while self.parser.current_token() and self.parser.current_token().type != "RPAREN":
+            if not self.parser.current_token():
+                raise C2KatoError(f"Unexpected end of file in function call {name}")
+            
             arguments.append(self.parse_expression())
             
             if self.parser.current_token() and self.parser.current_token().type == "COMMA":
                 self.parser.advance()
+            elif self.parser.current_token() and self.parser.current_token().type != "RPAREN":
+                token = self.parser.current_token()
+                raise C2KatoError(f"Expected ',' or ')' in function call, got {token.type}", token.line, token.column)
         
         self.parser.expect("RPAREN")
         

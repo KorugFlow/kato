@@ -15,6 +15,9 @@ class CStatementParser:
     def parse_statement(self):
         token = self.parser.current_token()
         
+        if not token:
+            raise C2KatoError("Unexpected end of file while parsing statement")
+        
         if token.type in ["INT_TYPE", "FLOAT_TYPE", "CHAR_TYPE"]:
             return self.parse_declaration()
         elif token.type == "IF":
@@ -33,9 +36,10 @@ class CStatementParser:
             return self.parse_scanf_statement()
         elif token.type == "IDENTIFIER":
             return self.parse_assignment_or_expression()
-        else:
-            self.parser.advance()
+        elif token.type in ["RBRACE", "SEMICOLON"]:
             return None
+        else:
+            raise C2KatoError(f"Unexpected token in statement: {token.type}", token.line, token.column)
     
     def parse_printf_statement(self):
         self.parser.expect("PRINTF")
@@ -72,26 +76,49 @@ class CStatementParser:
         return CFunctionCall("scanf", arguments)
     
     def parse_declaration(self):
-        var_type = self.parser.current_token().value
+        type_token = self.parser.current_token()
+        if not type_token:
+            raise C2KatoError("Unexpected end of file while parsing declaration")
+        
+        var_type = type_token.value
+        type_line, type_col = type_token.line, type_token.column
         self.parser.advance()
         
         if self.parser.current_token() and self.parser.current_token().type == "ASTERISK":
             var_type += "*"
             self.parser.advance()
         
+        if var_type not in self.parser.VALID_TYPES:
+            raise C2KatoError(f"Invalid type '{var_type}'", type_line, type_col)
+        
         declarations = []
+        declared_names = set()
         
         while True:
+            if not self.parser.current_token() or self.parser.current_token().type != "IDENTIFIER":
+                token = self.parser.current_token()
+                raise C2KatoError(f"Expected identifier after type '{var_type}'", token.line if token else None, token.column if token else None)
+            
             name_token = self.parser.expect("IDENTIFIER")
             name = name_token.value
+            
+            if name in declared_names:
+                raise C2KatoError(f"Redeclaration of variable '{name}' in the same statement", name_token.line, name_token.column)
+            declared_names.add(name)
             
             if self.parser.current_token() and self.parser.current_token().type == "LBRACKET":
                 self.parser.advance()
                 
                 size = None
                 if self.parser.current_token() and self.parser.current_token().type == "NUMBER":
-                    size = self.parser.current_token().value
+                    size_token = self.parser.current_token()
+                    size = size_token.value
+                    if int(size) <= 0:
+                        raise C2KatoError(f"Array size must be positive, got {size}", size_token.line, size_token.column)
                     self.parser.advance()
+                elif self.parser.current_token() and self.parser.current_token().type != "RBRACKET":
+                    token = self.parser.current_token()
+                    raise C2KatoError(f"Expected array size or ']', got '{token.type}'", token.line, token.column)
                 
                 self.parser.expect("RBRACKET")
                 
@@ -135,6 +162,9 @@ class CStatementParser:
         self.parser.expect("IF")
         self.parser.expect("LPAREN")
         
+        if not self.parser.current_token():
+            raise C2KatoError("Expected condition in if statement")
+        
         condition = self.expr_parser.parse_expression()
         
         self.parser.expect("RPAREN")
@@ -167,6 +197,9 @@ class CStatementParser:
         self.parser.expect("WHILE")
         self.parser.expect("LPAREN")
         
+        if not self.parser.current_token():
+            raise C2KatoError("Expected condition in while statement")
+        
         condition = self.expr_parser.parse_expression()
         
         self.parser.expect("RPAREN")
@@ -184,9 +217,19 @@ class CStatementParser:
         self.parser.expect("FOR")
         self.parser.expect("LPAREN")
         
+        if not self.parser.current_token():
+            raise C2KatoError("Expected initialization in for statement")
+        
         init = self.parse_statement()
+        
+        if not self.parser.current_token():
+            raise C2KatoError("Expected condition in for statement")
+        
         condition = self.expr_parser.parse_expression()
         self.parser.expect("SEMICOLON")
+        
+        if not self.parser.current_token():
+            raise C2KatoError("Expected increment in for statement")
         
         increment = self.expr_parser.parse_expression()
         
@@ -202,18 +245,27 @@ class CStatementParser:
         return CForStatement(init, condition, increment, body)
     
     def parse_return_statement(self):
+        return_token = self.parser.current_token()
         self.parser.expect("RETURN")
         
         value = None
         if self.parser.current_token() and self.parser.current_token().type != "SEMICOLON":
             value = self.expr_parser.parse_expression()
         
+        if self.parser.current_function:
+            func_return_type = self.parser.current_function["return_type"]
+            if func_return_type == "void" and value is not None:
+                raise C2KatoError(f"Void function '{self.parser.current_function['name']}' should not return a value", return_token.line, return_token.column)
+            elif func_return_type != "void" and value is None:
+                raise C2KatoError(f"Non-void function '{self.parser.current_function['name']}' must return a value", return_token.line, return_token.column)
+        
         self.parser.expect("SEMICOLON")
         
         return CReturnStatement(value)
     
     def parse_assignment_or_expression(self):
-        name = self.parser.current_token().value
+        name_token = self.parser.current_token()
+        name = name_token.value
         self.parser.advance()
         
         if self.parser.current_token() and self.parser.current_token().type == "LBRACKET":
@@ -229,6 +281,9 @@ class CStatementParser:
         
         if self.parser.current_token() and self.parser.current_token().type == "EQUALS":
             self.parser.advance()
+            if not self.parser.current_token() or self.parser.current_token().type == "SEMICOLON":
+                token = self.parser.current_token()
+                raise C2KatoError(f"Expected expression after '='", token.line if token else None, token.column if token else None)
             value = self.expr_parser.parse_expression()
             self.parser.expect("SEMICOLON")
             return CAssignment(name, value)
@@ -249,21 +304,29 @@ class CStatementParser:
                 arguments.append(self.expr_parser.parse_expression())
                 if self.parser.current_token() and self.parser.current_token().type == "COMMA":
                     self.parser.advance()
+                    if self.parser.current_token() and self.parser.current_token().type == "RPAREN":
+                        token = self.parser.current_token()
+                        raise C2KatoError("Expected argument after ','" , token.line, token.column)
             
             self.parser.expect("RPAREN")
             
-            if self.parser.current_token() and self.parser.current_token().type == "SEMICOLON":
-                self.parser.expect("SEMICOLON")
+            if not self.parser.current_token() or self.parser.current_token().type != "SEMICOLON":
+                token = self.parser.current_token()
+                raise C2KatoError(f"Expected ';' after function call", token.line if token else None, token.column if token else None)
+            
+            self.parser.expect("SEMICOLON")
             
             return CFunctionCall(name, arguments)
         else:
-            if self.parser.current_token() and self.parser.current_token().type == "SEMICOLON":
-                self.parser.expect("SEMICOLON")
-            return CExpressionStatement(name)
+            token = self.parser.current_token()
+            raise C2KatoError(f"Expected '=', '(', '++', or '--' after identifier '{name}'", name_token.line, name_token.column)
     
     def parse_switch_statement(self):
         self.parser.expect("SWITCH")
         self.parser.expect("LPAREN")
+        
+        if not self.parser.current_token():
+            raise C2KatoError("Expected expression in switch statement")
         
         expression = self.expr_parser.parse_expression()
         

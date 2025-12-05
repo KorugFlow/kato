@@ -11,7 +11,16 @@ from compiler.compiler import CCompiler
 from compiler.optimizer import Optimizer
 
 
-def find_c_compiler():
+def find_c_compiler(force_tcc=False):
+    
+    if force_tcc:
+        tcc_path = Path(__file__).parent / 'tcc' / 'tcc.exe'
+        if tcc_path.exists():
+            print("Using built-in TCC compiler")
+            return str(tcc_path)
+        else:
+            print("Error: TCC not found at", tcc_path)
+            return None
     
     system_compilers = ['gcc', 'clang', 'cl']
     
@@ -33,8 +42,8 @@ def find_c_compiler():
     return None
 
 
-def compile_c_to_exe(c_file, output_file, c_imports=None, stdlib_imports=None):
-    compiler = find_c_compiler()
+def compile_c_to_exe(c_file, output_file, c_imports=None, stdlib_imports=None, force_tcc=False):
+    compiler = find_c_compiler(force_tcc)
     
     if not compiler:
         print("No C compiler found (gcc, clang, cl, or TCC)")
@@ -98,6 +107,7 @@ def main():
     parser.add_argument('-c2kato', '--c2kato', action='store_true', help='Convert C code to Kato')
     parser.add_argument('-debug', '--debug', action='store_true', help='Show AST')
     parser.add_argument('-adv_debug', '--advanced-debug', action='store_true', help='Show tokens, AST, and C code')
+    parser.add_argument('-tcc', '--tcc', action='store_true', help='Force compilation using TCC')
     
     args = parser.parse_args()
     
@@ -243,7 +253,7 @@ def main():
         else:
             output_file = output_name
         
-        compile_c_to_exe(str(c_file), output_file, compiler.c_imports, preprocessor.stdlib_imports)
+        compile_c_to_exe(str(c_file), output_file, compiler.c_imports, preprocessor.stdlib_imports, args.tcc)
     
     except KatoSyntaxError as e:
         print(str(e))
