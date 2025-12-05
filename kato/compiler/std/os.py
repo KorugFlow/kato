@@ -86,11 +86,79 @@ int os_get_pid() {
 """
     },
     "os_system": {
+        "return_type": "string",
+        "params": ["string"],
+        "c_code": """
+char* os_system(const char* command) {
+    FILE* pipe = _popen(command, "r");
+    if (!pipe) return "";
+    char* result = (char*)malloc(65536);
+    result[0] = '\\0';
+    char buffer[256];
+    while (fgets(buffer, sizeof(buffer), pipe)) {
+        strcat(result, buffer);
+    }
+    _pclose(pipe);
+    return result;
+}
+"""
+    },
+    "os_cmd": {
+        "return_type": "string",
+        "params": ["string"],
+        "c_code": """
+char* os_cmd(const char* command) {
+    char cmd[512];
+    sprintf(cmd, "cmd /c %s", command);
+    FILE* pipe = _popen(cmd, "r");
+    if (!pipe) return "";
+    char* result = (char*)malloc(65536);
+    result[0] = '\\0';
+    char buffer[256];
+    while (fgets(buffer, sizeof(buffer), pipe)) {
+        strcat(result, buffer);
+    }
+    _pclose(pipe);
+    return result;
+}
+"""
+    },
+    "os_is_admin": {
+        "return_type": "int",
+        "params": [],
+        "c_code": """
+int os_is_admin() {
+    BOOL isAdmin = FALSE;
+    PSID adminGroup = NULL;
+    SID_IDENTIFIER_AUTHORITY ntAuthority = SECURITY_NT_AUTHORITY;
+    if (AllocateAndInitializeSid(&ntAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &adminGroup)) {
+        CheckTokenMembership(NULL, adminGroup, &isAdmin);
+        FreeSid(adminGroup);
+    }
+    return isAdmin ? 1 : 0;
+}
+"""
+    },
+    "os_runas": {
         "return_type": "int",
         "params": ["string"],
         "c_code": """
-int os_system(const char* command) {
-    return system(command);
+int os_runas(const char* mode) {
+    char exePath[MAX_PATH];
+    GetModuleFileNameA(NULL, exePath, MAX_PATH);
+    SHELLEXECUTEINFOA sei = {0};
+    sei.cbSize = sizeof(sei);
+    sei.fMask = SEE_MASK_NOCLOSEPROCESS;
+    sei.lpVerb = (strcmp(mode, "admin") == 0) ? "runas" : "open";
+    sei.lpFile = exePath;
+    sei.nShow = SW_NORMAL;
+    if (ShellExecuteExA(&sei)) {
+        if (sei.hProcess) {
+            CloseHandle(sei.hProcess);
+        }
+        return 1;
+    }
+    return 0;
 }
 """
     }

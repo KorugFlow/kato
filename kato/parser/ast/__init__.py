@@ -5,7 +5,7 @@ from .statements import (
     WhileStatement, IncrementStatement, DecrementStatement,
     ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause,
     ConvertStatement, CImportStatement, CCallStatement,
-    BreakStatement, ContinueStatement
+    BreakStatement, ContinueStatement, InfStatement, StopStatement
 )
 from .expressions import (
     StringLiteral, NumberLiteral, FloatLiteral, CharLiteral,
@@ -20,7 +20,7 @@ __all__ = [
     'WhileStatement', 'IncrementStatement', 'DecrementStatement',
     'ArrayDeclaration', 'ArrayAssignment', 'SwitchStatement', 'CaseClause',
     'ConvertStatement', 'CImportStatement', 'CCallStatement',
-    'BreakStatement', 'ContinueStatement',
+    'BreakStatement', 'ContinueStatement', 'InfStatement', 'StopStatement',
     'StringLiteral', 'NumberLiteral', 'FloatLiteral', 'CharLiteral',
     'Identifier', 'BinaryOp', 'InptCall', 'ArrayAccess', 'FunctionCall',
     'ConvertExpression'

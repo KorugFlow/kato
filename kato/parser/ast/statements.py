@@ -116,3 +116,12 @@ class BreakStatement(ASTNode):
 
 class ContinueStatement(ASTNode):
     pass
+
+
+class InfStatement(ASTNode):
+    def __init__(self, body):
+        self.body = body
+
+
+class StopStatement(ASTNode):
+    pass

@@ -4,7 +4,7 @@ from parser.ast import (
     WhileStatement, IncrementStatement, DecrementStatement,
     ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause,
     ConvertStatement, CImportStatement, CCallStatement,
-    BreakStatement, ContinueStatement,
+    BreakStatement, ContinueStatement, InfStatement, StopStatement,
     StringLiteral, NumberLiteral, FloatLiteral, Identifier, BinaryOp, InptCall, ArrayAccess, CharLiteral,
     ConvertExpression, FunctionCall
 )
@@ -52,6 +52,10 @@ class StatementCodegen:
             return self.compile_switch(statement)
         elif isinstance(statement, ConvertStatement):
             return self.compile_convert(statement)
+        elif isinstance(statement, InfStatement):
+            return self.compile_inf(statement)
+        elif isinstance(statement, StopStatement):
+            return f'{self.compiler.indent()}break;{line_comment}\n'
         else:
             raise ValueError(f"Unknown statement type: {type(statement).__name__}")
     
@@ -488,3 +492,12 @@ class StatementCodegen:
     def compile_c_call(self, statement):
         args = ", ".join([self.expr_codegen.compile_expr(arg) for arg in statement.arguments]) if statement.arguments else ""
         return f'{self.compiler.indent()}{statement.func_name}({args});\n'
+    
+    def compile_inf(self, statement):
+        code = f'{self.compiler.indent()}while (1) {{\n'
+        self.compiler.indent_level += 1
+        for stmt in statement.body:
+            code += self.compile_statement(stmt)
+        self.compiler.indent_level -= 1
+        code += f'{self.compiler.indent()}}}\n'
+        return code

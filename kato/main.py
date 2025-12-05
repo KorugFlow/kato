@@ -18,7 +18,7 @@ def find_c_compiler():
     return None
 
 
-def compile_c_to_exe(c_file, output_file, c_imports=None):
+def compile_c_to_exe(c_file, output_file, c_imports=None, stdlib_imports=None):
     compiler = find_c_compiler()
     
     if not compiler:
@@ -29,6 +29,10 @@ def compile_c_to_exe(c_file, output_file, c_imports=None):
     
     try:
         cmd = [compiler, c_file, '-o', output_file]
+        
+        if stdlib_imports and "os" in stdlib_imports:
+            cmd.extend(['-ladvapi32', '-lshell32'])
+        
         result = subprocess.run(cmd, capture_output=True, text=True)
         
         if result.returncode == 0:
@@ -218,7 +222,7 @@ def main():
         else:
             output_file = output_name
         
-        compile_c_to_exe(str(c_file), output_file, compiler.c_imports)
+        compile_c_to_exe(str(c_file), output_file, compiler.c_imports, preprocessor.stdlib_imports)
     
     except KatoSyntaxError as e:
         print(str(e))

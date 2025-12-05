@@ -4,7 +4,7 @@ from .ast.statements import (
     WhileStatement, IncrementStatement, DecrementStatement,
     ArrayDeclaration, ArrayAssignment, SwitchStatement, CaseClause,
     ConvertStatement, CImportStatement, CCallStatement,
-    BreakStatement, ContinueStatement
+    BreakStatement, ContinueStatement, InfStatement, StopStatement
 )
 from .errors import KatoSyntaxError
 
@@ -43,6 +43,10 @@ class StatementParser:
             return self.parse_break()
         elif token.type == "CONTINUE":
             return self.parse_continue()
+        elif token.type == "INF":
+            return self.parse_inf_statement()
+        elif token.type == "STOP":
+            return self.parse_stop()
         elif token.type == "IDENTIFIER":
             next_token = self.parser.peek_token()
             if next_token and next_token.type == "PLUS_PLUS":
@@ -603,6 +607,29 @@ class StatementParser:
         self.parser.advance()
         self.parser.expect("SEMICOLON")
         stmt = ContinueStatement()
+        stmt.line_number = line_num
+        stmt.source_line = source_line
+        return stmt
+    
+    def parse_inf_statement(self):
+        self.parser.expect("INF")
+        self.parser.expect("LBRACE")
+        
+        body = []
+        while self.parser.current_token() and self.parser.current_token().type != "RBRACE":
+            body.append(self.parse_statement())
+        
+        self.parser.expect("RBRACE")
+        
+        return InfStatement(body)
+    
+    def parse_stop(self):
+        stop_token = self.parser.current_token()
+        line_num = stop_token.line
+        source_line = self.parser.source_lines[line_num - 1].strip() if line_num <= len(self.parser.source_lines) else ""
+        self.parser.advance()
+        self.parser.expect("SEMICOLON")
+        stmt = StopStatement()
         stmt.line_number = line_num
         stmt.source_line = source_line
         return stmt

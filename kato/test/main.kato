@@ -1,20 +1,15 @@
 func main() {
-    var int a = inpt("Enter a number 1 : ");
-    var int b = inpt("Enter a number 2 : ");
-    var char c = inpt("Enter a op : ");
-    switch (c) {
-        case '+'
-            print(*a* + *b*);
-            break;
-        case '-'
-            print(*a* - *b*);
-            break;
-        case '*'
-            print(*a* * *b*);
-            break;
-        case '/'
-            print(*a* / *b*);
-            break;
+    var int count = 0;
+    
+    inf {
+        print("Count: *count*\n");
+        count++;
+        
+        if count == 5 {
+            stop;
+        }
     }
+    
+    print("Loop finished!\n");
     return 0;
 }

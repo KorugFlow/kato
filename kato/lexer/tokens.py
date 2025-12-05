@@ -22,4 +22,6 @@ class tokens:
         "convert": "CONVERT",
         "break": "BREAK",
         "continue": "CONTINUE",
+        "inf": "INF",
+        "stop": "STOP",
     }

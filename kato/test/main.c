@@ -11,29 +11,15 @@
 
 int main() {
     srand(time(NULL));
-    int a;  // var int a = inpt("Enter a number 1 : ");
-    printf("Enter a number 1 : ");
-    scanf("%d", &a);
-    int b;  // var int b = inpt("Enter a number 2 : ");
-    printf("Enter a number 2 : ");
-    scanf("%d", &b);
-    char c;  // var char c = inpt("Enter a op : ");
-    printf("Enter a op : ");
-    scanf(" %c", &c);
-    switch (c) {
-        case '+':
-            printf("%d", (a + b)); // print(*a* + *b*);
-            break; // break;
-        case '-':
-            printf("%d", (a - b)); // print(*a* - *b*);
-            break; // break;
-        case '*':
-            printf("%d", (a * b)); // print(*a* * *b*);
-            break; // break;
-        case '/':
-            printf("%d", (a / b)); // print(*a* / *b*);
-            break; // break;
+    int count = 0; // var int count = 0;
+    while (1) {
+        printf("Count: %d\n", count); // print("Count: *count*\n");
+        count++; // count++;
+        if ((count == 5)) {
+            break; // stop;
+        }
     }
+    printf("Loop finished!\n"); // print("Loop finished!\n");
     return 0; // return 0;
 }
 

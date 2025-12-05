@@ -45,6 +45,7 @@ class CCompiler:
             c_code += "#include <windows.h>\n"
             c_code += "#include <tlhelp32.h>\n"
             c_code += "#include <psapi.h>\n"
+            c_code += "#include <shellapi.h>\n"
             c_code += "#include <tlhelp32.h>\n"
         
         for c_header in self.c_imports:

@@ -1,4 +1,4 @@
-Kato - простой яп написанный на пайтон который компилируеться в C. При возможности компилятор kato будет автоматически комилировать C в .exe если доступны компиляторы в Path.
+Kato - простой язык программирования написанный на Python, который компилируется в C и автоматически в .exe с помощью встроенного TCC компилятора. Не требует установки внешних компиляторов или линкеров!
 
 ## Переменные
 
@@ -258,6 +258,21 @@ while (i < 10) {
 **Управление циклом:**
 - `break;` - выход из цикла
 - `continue;` - переход к следующей итерации
+
+### Бесконечный цикл inf
+
+Kato поддерживает специальный бесконечный цикл `inf` для упрощения работы:
+
+```
+inf {
+    // код выполняется бесконечно
+    stop; // останавливает цикл
+}
+```
+
+**Управление inf циклом:**
+- `stop;` - выход из бесконечного цикла
+
 
 Пример:
 ```
@@ -663,6 +678,73 @@ func main() {
 }
 ```
 
+**os_system(command)** - Выполняет системную команду и возвращает вывод
+- Параметры: `string command` - команда для выполнения
+- Возвращает: `string` - вывод команды
+
+```kato
+import os;
+
+func main() {
+    var string output = os_system("dir");
+    print("*output*");
+    return 0;
+}
+```
+
+**os_cmd(command)** - Выполняет команду через cmd.exe и возвращает вывод
+- Параметры: `string command` - команда для выполнения
+- Возвращает: `string` - вывод команды
+
+```kato
+import os;
+
+func main() {
+    var string output = os_cmd("echo Hello from CMD!");
+    print("*output*");
+    var string files = os_cmd("dir /b");
+    print("Files:\n*files*");
+    return 0;
+}
+```
+
+**os_is_admin()** - Проверяет, запущена ли программа с правами администратора
+- Параметры: нет
+- Возвращает: `int` - 1 если запущена от администратора, 0 если от пользователя
+
+```kato
+import os;
+
+func main() {
+    var int isAdmin = os_is_admin();
+    if isAdmin == 1 {
+        print("Running as Administrator\n");
+    } else {
+        print("Running as User\n");
+    }
+    return 0;
+}
+```
+
+**os_runas(mode)** - Перезапускает программу с указанными правами
+- Параметры: `string mode` - режим запуска ("admin" или "user")
+- Возвращает: `int` - 1 при успехе, 0 при ошибке
+
+```kato
+import os;
+
+func main() {
+    var int isAdmin = os_is_admin();
+    if isAdmin == 0 {
+        print("Restarting as admin...\n");
+        call os_runas("admin");
+        return 0;
+    }
+    print("Running with admin rights!\n");
+    return 0;
+}
+```
+
 ## c2kato - Транспилятор из C в Kato
 
 Kato включает транспилятор из C в Kato:
@@ -728,7 +810,7 @@ func main() {
 
 ---
 
-Kato is a simple programming language written in Python that compiles into C. When possible, the Kato compiler will automatically compile C into .exe if compilers are available in the Path.
+Kato is a simple programming language written in Python that compiles into C and automatically into .exe using the built-in TCC compiler. No external compilers or linkers required!
 
 ## Variables
 
@@ -992,6 +1074,21 @@ while (i < 10) {
 **Loop control:**
 - `break;` - exit the loop
 - `continue;` - skip to next iteration
+
+### Infinite loop inf
+
+Kato supports a special infinite loop `inf` for easier usage:
+
+```
+inf {
+    // code runs infinitely
+    stop; // stops the loop
+}
+```
+
+**inf loop control:**
+- `stop;` - exit the infinite loop
+
 
 Example:
 ```
@@ -1393,6 +1490,73 @@ import os;
 func main() {
     var int my_pid = os_get_pid();
     print("My PID: *my_pid*\n");
+    return 0;
+}
+```
+
+**os_system(command)** - Executes a system command and returns output
+- Parameters: `string command` - command to execute
+- Returns: `string` - command output
+
+```kato
+import os;
+
+func main() {
+    var string output = os_system("dir");
+    print("*output*");
+    return 0;
+}
+```
+
+**os_cmd(command)** - Executes a command through cmd.exe and returns output
+- Parameters: `string command` - command to execute
+- Returns: `string` - command output
+
+```kato
+import os;
+
+func main() {
+    var string output = os_cmd("echo Hello from CMD!");
+    print("*output*");
+    var string files = os_cmd("dir /b");
+    print("Files:\n*files*");
+    return 0;
+}
+```
+
+**os_is_admin()** - Checks if the program is running with administrator privileges
+- Parameters: none
+- Returns: `int` - 1 if running as administrator, 0 if running as user
+
+```kato
+import os;
+
+func main() {
+    var int isAdmin = os_is_admin();
+    if isAdmin == 1 {
+        print("Running as Administrator\n");
+    } else {
+        print("Running as User\n");
+    }
+    return 0;
+}
+```
+
+**os_runas(mode)** - Restarts the program with specified privileges
+- Parameters: `string mode` - run mode ("admin" or "user")
+- Returns: `int` - 1 on success, 0 on error
+
+```kato
+import os;
+
+func main() {
+    var int isAdmin = os_is_admin();
+    if isAdmin == 0 {
+        print("Restarting as admin...\n");
+        call os_runas("admin");
+        return 0;
+    }
+    print("Running with admin rights!\n");
     return 0;
 }
 ```
